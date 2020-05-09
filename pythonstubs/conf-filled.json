@@ -1,0 +1,25 @@
+{
+    "wifi": {
+        "ssid": "myInternet",
+        "password": "secret123",
+        "cloud": "122.246.157.228"
+    },
+    "serial": {
+        "baud": 115200,
+        "databits": 8,
+        "paritybits": 0,
+        "stopbit": 1
+    },
+    "endpoint1": {
+        "type": "wifi",
+        "lane": "192.168.0.24:5000"
+    },
+    "inserial": {
+        "type": "serial",
+        "lane": "COM6"
+    },
+    "outserial": {
+        "type": "serial",
+        "lane": "COM4, COM5"
+    }
+}

@@ -1,0 +1,223 @@
+grammar org.iot.codegenerator.CodeGenerator with org.eclipse.xtext.common.Terminals
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
+
+// We are aware that this is questionable, but we will use a validator to
+// ensure that board, fog, and cloud are not overwritten. This grammar is loose
+// and allows for specifying things in any order
+DeviceConf:
+	language=Language (channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+;
+
+Language:
+	'language' name=ID
+;
+
+Channel:
+	'channel' name=ID
+;
+
+Board:
+	'board' name=ID 'version' version=ID BEGIN
+		('in' input=[Channel])? sensors+=Sensor+
+	END
+;
+
+Sensor:
+	'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
+		sampler=Sampler datas+=SensorData+
+	END
+;
+
+ExtSensor:
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
+	sensortype=ID '('pins+=INT (',' pins+=INT)* ')'
+;
+
+OnbSensor:
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
+	sensortype=ID
+;
+
+Variables:
+	name=ID '(' ids+=Variable (',' ids+=Variable)* ')'
+;
+
+Variable:
+	name=ID
+;
+
+Sampler:
+	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
+;
+
+SensorData returns Data:
+	{SensorData} 'data' name=ID BEGIN
+		outputs += SensorDataOut+
+	END
+;
+
+SensorDataOut:
+	ScreenOut | ChannelOut
+;
+
+ScreenOut:
+	'out' 'oled' prints+=Expression
+;
+
+ChannelOut:
+	'out' channel=[Channel] source=[Variables] pipeline=Pipeline?
+;
+
+Pipeline:
+	'.' (TuplePipeline | MapPipeline | WindowPipeline) (next=Pipeline)?
+;
+
+TuplePipeline:
+	({Filter} 'filter' | {Abs} 'abs') '['expression=Expression']'
+;
+
+MapPipeline:
+	{Map} 'map' '['expression=Expression '->' output=Variable ']'
+;
+
+WindowPipeline:
+	{Window} 'byWindow' '['width=INT']' '.' executePipeline=ExecutePipeline
+;
+
+ExecutePipeline:
+    {Reduce} 'reduce' |
+    {Mean} 'mean' |
+    {Median} 'median' |
+    {Mode} 'mode' |
+    {Var} 'var' |
+    {StDev} 'stdev' |
+    {Min} 'min' |
+    {Max} 'max' |
+    {Count} 'count'
+;
+
+// The expression rules are loose allowing for meaningless expressions to be
+// formed. Well-typedness will be ensured using validators
+Expression:
+	Conditional
+;
+
+// 4 == 4 ? yes : no, is per definition right associative
+Conditional returns Expression:
+	Or ({Conditional.condition=current} '?' correct=Conditional ':' incorrect=Conditional)?
+;
+
+// Implemented in a right-associative way just as an example - associativity
+// does not matter for && and ||
+Or returns Expression:
+	And ({Or.left=current} '||' right=Or)?
+;
+
+And returns Expression:
+	Equality ({And.left=current} '&&' right=And)?
+;
+
+Equality returns Expression:
+	Comparison ({Equal.left=current} '==' right=Comparison | {Unequal.left = current} '!=' right=Comparison)*
+;
+
+Comparison returns Expression:
+	SubAdd ({LessThan.left=current} '<' right=SubAdd | {LessThanEqual.left=current} '<=' right=SubAdd | {GreaterThan.left=current} '>' right=SubAdd | {GreaterThanEqual.left=current} '>=' right=SubAdd)*
+;
+
+SubAdd returns Expression:
+	MulDiv ({Plus.left=current} '+' right=MulDiv | {Minus.left=current} '-' right=MulDiv)*
+;
+
+MulDiv returns Expression:
+	Negation ({Mul.left=current} '*' right=Negation | {Div.left=current} '/' right=Negation)*
+;
+
+Negation returns Expression:
+    {Negation} '-' value=Exponent | Exponent
+;
+
+// Exponentiation is right-associative!
+// That is why the rule refers to itself (or its parent) on the right of the operator
+Exponent returns Expression:
+    Not ({Exponent.base=current} '**' power=Negation)?
+;
+
+Not returns Expression:
+	{Not} '!' value=Primary | Primary
+;
+
+Primary returns Expression:
+	'('Expression')' | NumberLiteral | BooleanLiteral | Reference | StringLiteral
+;
+
+Reference:
+	variable=[Variable]
+;
+
+StringLiteral:
+	value=STRING
+;
+
+NumberLiteral:
+	value=NUMBER
+;
+
+BooleanLiteral:
+	value=BOOLEAN
+;
+
+Fog:
+	'fog' BEGIN
+		transformations+=Transformation+ 
+	END
+;
+
+Cloud:
+	'cloud' BEGIN
+		transformations+=Transformation+ 
+	END
+;
+
+Transformation:
+	'transformation' provider=[Data] 'as' variables=Variables BEGIN
+		datas+=TransformationData+
+	END
+;
+
+TransformationData returns Data:
+	{TransformationData} 'data' name=ID BEGIN
+		outputs += TransformationOut+ 	
+	END
+;
+
+TransformationOut: 
+	'out' source=[Variables] pipeline=Pipeline?
+;
+
+Provider:
+	Sensor | Transformation
+;
+
+terminal BEGIN: 'synthetic:BEGIN';
+terminal END: 'synthetic:END';
+
+@Override 
+terminal INT returns ecore::EInt:
+	'0' | ('1'..'9')('0'..'9')*
+;
+terminal DBL returns ecore::EDouble:
+	INT? '.'('0'..'9')+
+;
+terminal SCI returns ecore::EDouble:
+	(INT | DBL) ('e' | 'E') '-'? INT
+;
+terminal BOOLEAN returns ecore::EBoolean:
+	'true' | 'false'
+;
+NUMBER hidden():
+	INT | DBL | SCI
+;
