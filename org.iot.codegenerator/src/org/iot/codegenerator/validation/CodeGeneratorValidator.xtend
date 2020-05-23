@@ -442,4 +442,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		not.value.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.NOT__VALUE)
 	}
 
+	@Check
+	def checkNoCycleInEntityHierarchy(Board board) {
+		if (board.superType === null) {
+			return
+		}
+		val visited = newHashSet(board)
+		var current = board.superType
+		while (current !== null) {
+			if (visited.contains(current)) {
+				error('''cyclic inheritance in hierarchy of board «current.name»''', CodeGeneratorPackage.Literals.BOARD__SUPER_TYPE)
+				return
+			}
+			visited.add(current)
+			current = current.superType
+		}
+	}
+	
 }

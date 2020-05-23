@@ -20,13 +20,24 @@ Channel:
 ;
 
 Board:
-	'board' name=ID 'version' version=ID BEGIN
+	ConcreteBoard | AbstractBoard
+;
+
+ConcreteBoard returns Board:
+	'board' name=ID 
+		('extends' superType = [AbstractBoard] | 'version' version=ID) BEGIN
+		('in' input=[Channel])? sensors+=Sensor+
+	END
+;
+
+AbstractBoard:
+	'abstract' 'board' name=ID ('extends' superType = [AbstractBoard]? | 'version' version=ID) BEGIN
 		('in' input=[Channel])? sensors+=Sensor+
 	END
 ;
 
 Sensor:
-	'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
+	('override')? 'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
 		sampler=Sampler datas+=SensorData+
 	END
 ;
