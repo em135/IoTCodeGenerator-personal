@@ -25,13 +25,13 @@ Board:
 
 ConcreteBoard returns Board:
 	'board' name=ID 
-		('extends' superType = [AbstractBoard] | 'version' version=ID) BEGIN
+		('extends' superType = [AbstractBoard])? BEGIN
 		('in' input=[Channel])? sensors+=Sensor+
 	END
 ;
 
 AbstractBoard:
-	'abstract' 'board' name=ID ('extends' superType = [AbstractBoard]? | 'version' version=ID) BEGIN
+	'abstract' 'board' name=ID ('extends' superType = [AbstractBoard])? BEGIN
 		('in' input=[Channel])? sensors+=Sensor+
 	END
 ;

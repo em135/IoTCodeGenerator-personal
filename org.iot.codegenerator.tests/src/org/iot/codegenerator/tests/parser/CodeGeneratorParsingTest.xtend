@@ -42,7 +42,7 @@ class CodeGeneratorParsingTest {
 		val board = model.board.get(0)
 	
 		assertEquals("esp32", board.name)
-		assertEquals("wrover", board.version)
+
 	}
 	
 	

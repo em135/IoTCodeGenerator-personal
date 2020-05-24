@@ -70,67 +70,55 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Inject
 	extension TypeChecker
 
-	@Check(CheckType.NORMAL)
-	def checkDeviceConfiguration(DeviceConf configuration) {
-		val boards = configuration.board
-
-		if (boards.size() < 1) {
-			error('''There must be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
-			return
-		} else if (boards.size() > 1) {
-			error('''There must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
-			return
-		}
-
-		val clouds = configuration.cloud
-
-		if (clouds.size() < 1) {
-			warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
-			return
-		} else if (clouds.size() > 1) {
-			error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
-			return
-		}
-
-		val fogs = configuration.fog
-
-		if (fogs.size() > 1) {
-			error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
-			return
-		}
-	}
+//	@Check(CheckType.NORMAL)
+//	def checkDeviceConfiguration(DeviceConf configuration) {
+//		val boards = configuration.board
+//		
+//		if (boards.size() < 1) {
+//			error('''There must be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+//			return
+//		} else if (boards.size() > 1) {
+//			error('''There must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+//			return
+//		}
+//
+//		val clouds = configuration.cloud
+//
+//		if (clouds.size() < 1) {
+//			warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+//			return
+//		} else if (clouds.size() > 1) {
+//			error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+//			return
+//		}
+//
+//		val fogs = configuration.fog
+//
+//		if (fogs.size() > 1) {
+//			error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
+//			return
+//		}
+//	}
 
 	@Check
 	def validateBoard(Board board) {
-		val b = UtilityBoard.getBoard(board)
-		if (b === null) {
-			error('''unsupported board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Name)
-		} else if (b.sensors === null) {
-			error('''unsupported version «board.version» for board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Version)
-		} else {
-			info('''«board.version» supports the following sensors: «b.sensors»''', CodeGeneratorPackage.eINSTANCE.board_Version)
-		}
+		val b = new ESP32()
+		info('''«board.name» supports the following sensors: «b.sensors»''', CodeGeneratorPackage.eINSTANCE.board_Name)
 	}
 	 
 	@Check
 	def validateOnboardSensor(Sensor sensor) {
 		if (sensor instanceof OnbSensor){
-			val cb = sensor.getContainerOfType(Board)
-			val b = UtilityBoard.getBoard(cb)
+			val board = new ESP32()
 			val s = sensor as OnbSensor
-			val variableCount = b.getVariableCount(s.sensortype)
+			val parameterCount = board.getParameterCount(s.sensortype)
 
-			// Do not bother with invalid boards
-			if (b.sensors === null) {
-				return
-			}
-
-			if (variableCount == -1) {
-				error('''«b» does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (variableCount < s.variables.ids.length) {
-				error('''Maximum number of output variables for sensor type «s.sensortype» is «variableCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (variableCount > s.variables.ids.length) {
-				info('''«s.sensortype» supports up to «variableCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			if (parameterCount == -1) {
+				error('''Board does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (parameterCount < s.variables.ids.length) {
+				error('''Maximum number of output variables for sensor type «s.sensortype» is «parameterCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (parameterCount > s.variables.ids.length) {
+				info('''«s.sensortype» supports up to «parameterCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			}
 		}
 	}
