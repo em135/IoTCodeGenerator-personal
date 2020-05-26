@@ -55,6 +55,7 @@ import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.TuplePipeline
 
 /**
  * This class contains custom validation rules. 
@@ -283,6 +284,19 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def checkWindowPipeline(Pipeline pipeline) {
 		if (pipeline instanceof WindowPipeline) {
 			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+			return
+		}
+		var pipe = pipeline
+		if (pipeline instanceof TuplePipeline) {
+			while(pipe !== null) {
+				if (!(pipe instanceof TuplePipeline) && !(pipe instanceof WindowPipeline)){
+					return
+				} else if (pipe instanceof WindowPipeline) {
+					error('''cannot use byWindow on tuple type''', pipe, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+					return
+				}
+				pipe = pipe.next
+			}
 		}
 	}
 	
