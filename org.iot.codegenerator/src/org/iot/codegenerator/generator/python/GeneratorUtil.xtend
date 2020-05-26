@@ -19,11 +19,19 @@ class GeneratorUtil {
 	}
 	
 	static def String asModule(String name) {
-		name.toLowerCase
+		if (name.toLowerCase.equals("esp32")){
+			"esp_32" // A module named ESP32 can give problems when using MicroPython
+		} else {
+			name.toLowerCase
+		}
 	}
 
 	static def String asClass(String name) {
-		name.toFirstUpper
+		if (name.toLowerCase.equals("esp32")){
+			"Esp_32" // A class named ESP32 can give problems when using MicroPython
+		} else {
+			name.toFirstUpper
+		}
 	}
 
 	static def boolean isFrequency(Sensor sensor) {
