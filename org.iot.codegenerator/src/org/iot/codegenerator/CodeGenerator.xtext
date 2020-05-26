@@ -79,7 +79,7 @@ ScreenOut:
 ;
 
 ChannelOut:
-	'out' channel=[Channel] source=[Variables] pipeline=Pipeline?
+	'out' channel=[Channel] source=[Variables] (pipeline=Pipeline? | '(' variables+=Variable (',' variables += Variable)* ')')
 ;
 
 Pipeline:
