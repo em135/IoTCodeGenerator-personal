@@ -64,7 +64,7 @@ class CompositionRootGenerator {
 					self.«channel.name.asInstance» = None
 				«ENDFOR»
 				
-				with open("conf-filled.json", "r") as _conf_file:
+				with open("config.json", "r") as _conf_file:
 					self.configuration = ujson.loads("".join(_conf_file.readlines()))
 			
 		'''
