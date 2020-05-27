@@ -268,8 +268,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	} 
 	
 	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
+		val firstPipelineType = channelOuts.get(0).pipeline.lastType
 		if (channelOuts.size >1){
-			val firstPipelineType = channelOuts.get(0).pipeline.lastType
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
