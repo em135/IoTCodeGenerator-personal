@@ -28,6 +28,8 @@ import org.iot.codegenerator.codeGenerator.Min
 import org.iot.codegenerator.codeGenerator.Mode
 import org.iot.codegenerator.codeGenerator.Reduce
 import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.codeGenerator.Window
+import org.iot.codegenerator.codeGenerator.ModifyPipeline
 
 class TypeChecker {
 
@@ -101,19 +103,38 @@ class TypeChecker {
 		var type = Type.INT
 		var pipe = pipeline
 		while(pipe !== null){
-			if (pipe instanceof Map) {
-				val mapPipeline = (pipe as Map)
-				type = mapPipeline.expression.type
-				cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, type)
-			} else {
-				switch(pipe){
-					case Count, Max, Mean, Median, Min, Mode, Reduce, StDev, Var, WindowPipeline:
-						type = Type.INT
-				}
+			if (pipe instanceof ModifyPipeline){
+				val output = pipe.output.name
+				if (pipe instanceof Map) {
+					val mapPipeline = (pipe as Map)
+					type = mapPipeline.expression.type
+					cache.getOrCreate(mapPipeline.eResource).set(output, type)
+				} else if (pipe instanceof Window) {
+					val windowPipeline = (pipe as Window)
+					type = Type.DOUBLE
+					cache.getOrCreate(windowPipeline.eResource).set(output, type)
+				} 
 			}
+			
+			
+//			else {
+//				switch(pipe){
+//					case Count, Max, Mean, Median, Min, Mode, Reduce, StDev, Var, WindowPipeline:
+//						type = Type.INT // TODO FLOAT?
+//				}
+//			}
 			pipe = pipe.next
 		}
+		System.out.println("Type for pipe: " + pipe + " is: " + type)
 		return type
+	}
+	
+	def Pipeline lastPipeline(Pipeline pipeline){
+		var pipe = pipeline
+		while (pipe.next !== null){
+			pipe = pipe.next
+		}
+		return pipe
 	}
 
 	def cacheVariables(Variables variables){

@@ -13,7 +13,7 @@ import org.iot.codegenerator.codeGenerator.Cloud
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Fog
-import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.ModifyPipeline
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Provider
 
@@ -44,7 +44,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 
 	def private IScope getVariableScope(EObject context) {
-		val mapContainer = context.getContainerOfType(Pipeline)?.eContainer()?.getContainerOfType(Map)
+		val mapContainer = context.getContainerOfType(Pipeline)?.eContainer()?.getContainerOfType(ModifyPipeline)
 		if (mapContainer !== null) {
 			Scopes.scopeFor((Collections.singleton(mapContainer.output)))
 		} else {

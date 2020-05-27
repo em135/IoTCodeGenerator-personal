@@ -83,19 +83,23 @@ ChannelOut:
 ;
 
 Pipeline:
-	'.' (TuplePipeline | MapPipeline | WindowPipeline) (next=Pipeline)?
+	'.' (TuplePipeline | ModifyPipeline) (next=Pipeline)?
 ;
 
 TuplePipeline:
-	({Filter} 'filter' | {Abs} 'abs') '['expression=Expression']'
+	({Filter} 'filter' | {Abs} 'abs') '('expression=Expression')'
+;
+
+ModifyPipeline:
+	(MapPipeline | WindowPipeline) '->' output=Variable ')'
 ;
 
 MapPipeline:
-	{Map} 'map' '['expression=Expression '->' output=Variable ']'
+	{Map} 'map' '('expression=Expression
 ;
 
 WindowPipeline:
-	{Window} 'byWindow' '['width=INT']' '.' executePipeline=ExecutePipeline
+	{Window} 'byWindow' '(['width=INT']' '.' executePipeline=ExecutePipeline
 ;
 
 ExecutePipeline:
@@ -109,7 +113,6 @@ ExecutePipeline:
     {Max} 'max' |
     {Count} 'count'
 ;
-
 // The expression rules are loose allowing for meaningless expressions to be
 // formed. Well-typedness will be ensured using validators
 Expression:
