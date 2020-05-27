@@ -5,10 +5,10 @@ import sys
 class Communication:
 
     def send(self, data: bytes):
-        pass
+        print(data)
     
     def receive(self) -> bytes:
-        pass
+        print(data)
 
 # Communication over USB
 class Serial(Communication):
@@ -23,6 +23,7 @@ class Serial(Communication):
     
     def receive(self) -> bytes:
         data = sys.stdin.readline().replace("\r", "").replace("\n", "")
+        print(data) 
         return data.encode("utf-8")
 
 # Wireless communication
