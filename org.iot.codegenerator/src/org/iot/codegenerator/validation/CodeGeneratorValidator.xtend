@@ -15,7 +15,6 @@ import java.util.stream.Stream
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
-import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.ChannelOut
@@ -56,6 +55,7 @@ import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.TuplePipeline
+import org.iot.codegenerator.codeGenerator.Map
 
 /**
  * This class contains custom validation rules. 
@@ -281,7 +281,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	def checkWindowPipeline(Pipeline pipeline) {
+	def checkFirstPipeline(Pipeline pipeline) {
 		if (pipeline instanceof WindowPipeline) {
 			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
 			return
@@ -300,6 +300,20 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
+	
+	@Check
+	def validateWindowNotUsedOnString(Map map){
+		if (map.expression.type == TypeChecker.Type.STRING) {
+			var next = map.next
+			while (next !== null && next instanceof TuplePipeline){
+				next = next.next
+			}
+			if (next instanceof WindowPipeline){
+				error('''cannot use byWindow on string type''', next, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+			}
+		}
+	}
+	
 	@Check
 	def validatePipelineOutputs(Data data){
 		if (data instanceof TransformationData) {
@@ -308,7 +322,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			
 			for (TransformationOut transformationOut : transformationDataOutputs) {
 				transformationOuts.add(transformationOut)
-				checkWindowPipeline(transformationOut.pipeline)
+				checkFirstPipeline(transformationOut.pipeline)
 			}
 			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
 		} else if (data instanceof SensorData) {
@@ -319,7 +333,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				if (sensorDataOut instanceof ChannelOut) {
 					val channelOut = sensorDataOut as ChannelOut
 					channelOuts.add(channelOut)
-					checkWindowPipeline(channelOut.pipeline)
+					checkFirstPipeline(channelOut.pipeline)
 				}
 			}
 			checkSameTypeOfChannelOutPipelines(channelOuts)
