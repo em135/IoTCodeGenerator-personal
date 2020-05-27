@@ -18,16 +18,6 @@ import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Variable
-import org.iot.codegenerator.codeGenerator.Var
-import org.iot.codegenerator.codeGenerator.StDev
-import org.iot.codegenerator.codeGenerator.Count
-import org.iot.codegenerator.codeGenerator.Max
-import org.iot.codegenerator.codeGenerator.Mean
-import org.iot.codegenerator.codeGenerator.Median
-import org.iot.codegenerator.codeGenerator.Min
-import org.iot.codegenerator.codeGenerator.Mode
-import org.iot.codegenerator.codeGenerator.Reduce
-import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.codeGenerator.ModifyPipeline
 
@@ -40,7 +30,8 @@ class TypeChecker {
 		DOUBLE,
 		BOOLEAN,
 		STRING,
-		INVALID
+		INVALID,
+		VOID
 	}
 
 	def dispatch Type type(NumberLiteral number) {
@@ -67,6 +58,10 @@ class TypeChecker {
 
 	def dispatch Type type(Expression expression) {
 		Type.BOOLEAN
+	}
+	
+	def dispatch Type type(Void vd) {
+		Type.VOID
 	}
 	
 	def dispatch Type type(Conditional conditional) {
