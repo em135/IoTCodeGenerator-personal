@@ -6,6 +6,7 @@ import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
@@ -94,7 +95,7 @@ class CompositionRootGenerator {
 					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»«IF sensor instanceof OnbSensor»(self.provide_driver_«sensor.sensortype»())«ELSE»(self.provide_driver_default())«ENDIF»
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
-							«sensor.sensortype.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
+							«sensor.sensortype.asInstance».add_pipeline(«providerPipelineName(data, out)»())
 						«ENDFOR»
 					«ENDFOR»
 					return «sensor.sensortype.asInstance»
@@ -251,14 +252,25 @@ class CompositionRootGenerator {
 	private def String providerName(Channel channel) {
 		'''provide_channel_«channel.name.asModule»'''
 	}
-
+	
+		
 	private def String providerName(SensorDataOut out) {
 		val sensor = out.getContainerOfType(Sensor)
 		val data = out.getContainerOfType(SensorData)
 		val index = data.outputs.takeWhile [
 			it != out
 		].size + 1
-
+	
 		'''provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
 	}
+	
+	private def String providerPipelineName(SensorData data, SensorDataOut out) {
+		val sensor = out.getContainerOfType(Sensor)
+		val index = data.outputs.takeWhile [
+			it != out
+		].size + 1
+	
+		'''"«data.name.asModule»«index»", self.provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
+	}
+
 }

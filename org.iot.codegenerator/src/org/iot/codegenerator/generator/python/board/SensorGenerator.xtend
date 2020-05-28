@@ -90,7 +90,7 @@ class SensorGenerator {
 	private def String compileSensorSampling(Sensor sensor, GeneratorEnvironment env) {
 		'''
 			sampling = self.sensor.read_data()
-			for i, data_name in enumerate(self.variables):
+			for i, data_name in reversed(list(enumerate(self.variables))):
 				pipeline = self.get_pipeline(data_name, i)
 				pipeline.handle(sampling)
 		'''
