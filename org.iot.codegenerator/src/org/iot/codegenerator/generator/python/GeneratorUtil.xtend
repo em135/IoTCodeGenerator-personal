@@ -11,16 +11,14 @@ import org.iot.codegenerator.codeGenerator.Window
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.ExecutePipeline
-import org.iot.codegenerator.codeGenerator.Reduce
 import org.iot.codegenerator.codeGenerator.Mean
 import org.iot.codegenerator.codeGenerator.Median
-import org.iot.codegenerator.codeGenerator.Mode
 import org.iot.codegenerator.codeGenerator.Var
 import org.iot.codegenerator.codeGenerator.StDev
-import org.iot.codegenerator.codeGenerator.Min
-import org.iot.codegenerator.codeGenerator.Max
 import org.iot.codegenerator.codeGenerator.Count
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.iot.codegenerator.codeGenerator.Minimum
+import org.iot.codegenerator.codeGenerator.Maximum
 
 class GeneratorUtil {
 	
@@ -77,17 +75,15 @@ class GeneratorUtil {
 	
 	static def String executePipelineMethod(ExecutePipeline executePipeline){
 		val type = switch (executePipeline) {
-		    Reduce: "reduce"
 			Mean: "mean"
 		    Median: "median"
-		    Mode: "mode"
 		    Var: "var"
 		    StDev: "stdev"
-		    Min: "min" 
-		    Max: "max"
+		    Minimum: "minimum" 
+		    Maximum: "maximum"
 		    Count: "count"
 		}
-		'''WindowUtils.«type»'''
+		'''«type»'''
 	}
 
 }

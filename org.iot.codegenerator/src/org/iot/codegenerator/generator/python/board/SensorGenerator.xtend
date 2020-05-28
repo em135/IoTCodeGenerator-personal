@@ -162,9 +162,10 @@ class SensorGenerator {
 	}
 	
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {
+		env.useImport("by_window_utils", window.executePipeline.executePipelineMethod)
 		'''
-			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»«env.useImport("pipeline", "WindowUtils")»):
-				def __init__(self, next: Interceptor):
+			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
+				def __init__(self, next):
 					super().__init__(next)
 					self._buffer = []
 				

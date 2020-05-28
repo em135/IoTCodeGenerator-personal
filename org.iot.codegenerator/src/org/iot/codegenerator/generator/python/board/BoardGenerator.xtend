@@ -35,6 +35,7 @@ class BoardGenerator {
 
 		"/libfiles/communication.py".compileAsLibfile()
 		"/libfiles/pipeline.py".compileAsLibfile()
+		"/libfiles/by_window_utils.py".compileAsLibfile()
 		"/libfiles/thread.py".compileAsLibfile()
 		
 		if (board.usesOled) {

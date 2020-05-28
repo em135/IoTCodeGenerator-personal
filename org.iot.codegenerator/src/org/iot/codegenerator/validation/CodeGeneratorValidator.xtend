@@ -56,6 +56,8 @@ import org.iot.codegenerator.typing.TypeChecker
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.TuplePipeline
 import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.ExecutePipeline
+import org.iot.codegenerator.codeGenerator.Window
 
 /**
  * This class contains custom validation rules. 
@@ -278,6 +280,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 					)
 				}
 			}
+		}
+	}
+	
+	@Check
+	def checkWindowWidth(Window window){
+		if(window.width < 2) {
+			error('''window width must be 2 or greater''', window, CodeGeneratorPackage.eINSTANCE.window_Width)
 		}
 	}
 	

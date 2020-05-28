@@ -103,14 +103,12 @@ WindowPipeline:
 ;
 
 ExecutePipeline:
-    {Reduce} 'reduce' |
     {Mean} 'mean' |
     {Median} 'median' |
-    {Mode} 'mode' |
     {Var} 'var' |
     {StDev} 'stdev' |
-    {Min} 'min' |
-    {Max} 'max' |
+    {Minimum} 'min' |
+    {Maximum} 'max' |
     {Count} 'count'
 ;
 // The expression rules are loose allowing for meaningless expressions to be
