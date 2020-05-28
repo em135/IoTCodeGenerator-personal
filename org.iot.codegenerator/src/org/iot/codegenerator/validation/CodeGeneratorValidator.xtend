@@ -149,6 +149,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
 	}
+	
 
 	def checkNoDuplicateDataName(List<Data> datas) {
 		val dataNameValues = new HashMap<String, Set<Data>>
@@ -165,6 +166,26 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
 					error('''duplicate «data.name»''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+				}
+			}
+		}
+	}
+	
+	def checkNoDuplicateSensorName(List<Sensor> sensors) {
+		val sensorNameValues = new HashMap<String, Set<Sensor>>
+		for (sensor : sensors) {
+			val name = sensor.sensortype
+			if (sensorNameValues.containsKey(name)) {
+				sensorNameValues.get(name).add(sensor)
+			} else {
+				sensorNameValues.put(name, Sets.newHashSet(sensor))
+			}
+		}
+
+		for (Set<Sensor> sensorSet : sensorNameValues.values) {
+			if (sensorSet.size > 1) {
+				for (sensor : sensorSet) {
+					error('''duplicate sensor «sensor.sensortype»''', sensor, CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 				}
 			}
 		}
@@ -188,6 +209,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Check
 	def validateData(Data data) {
 		var datas = new ArrayList<Data>
+		var sensors = new ArrayList<Sensor>
 		for (EObject eObject : data.eResource.getContents()) {
 			if (eObject instanceof DeviceConf) {
 				val deviceConf = eObject as DeviceConf
@@ -198,6 +220,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				if (board.size > 0) {
 					for (Sensor sensor : board.get(0).sensors) {
 						datas.addAll(sensor.datas)
+						sensors.add(sensor)
 					}
 				}
 
@@ -214,6 +237,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				}
 
 				checkNoDuplicateDataName(datas)
+				checkNoDuplicateSensorName(sensors)
 				return
 			}
 		}
