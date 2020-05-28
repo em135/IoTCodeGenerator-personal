@@ -270,7 +270,7 @@ class CompositionRootGenerator {
 			it != out
 		].size + 1
 	
-		'''"«data.name.asModule»«index»", self.provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
+		'''"«data.name.asModule»_«index»", self.provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
 	}
 
 }
