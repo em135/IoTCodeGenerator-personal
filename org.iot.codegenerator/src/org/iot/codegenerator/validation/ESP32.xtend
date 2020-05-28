@@ -6,9 +6,8 @@ class ESP32 {
 
 	// The number of values read from the sensors
 	Map<String, Integer> sensorParameterCount = #{
-		"temperature" -> 1,
-		"humidity" -> 1,
 		"light" -> 1,
+		"thermometer" -> 2,
 		"motion" -> 7
 	}
 

@@ -10,8 +10,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
-import org.iot.codegenerator.codeGenerator.Cloud
-import org.iot.codegenerator.codeGenerator.Fog
 import org.iot.codegenerator.generator.python.board.BoardGenerator
 
 /**
@@ -29,10 +27,10 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 		val board = resource.allContents.filter(Board).next()
 		board.compile(fsa)
 		
-		val fog = resource.allContents.filter(Fog).next()
+		//val fog = resource.allContents.filter(Fog).next()
 		// TODO
 		
-		val cloud = resource.allContents.filter(Cloud).next()
+		//val cloud = resource.allContents.filter(Cloud).next()
 		// TODO
 	}
 

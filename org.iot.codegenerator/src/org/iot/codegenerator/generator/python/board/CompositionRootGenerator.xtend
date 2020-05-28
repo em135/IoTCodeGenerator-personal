@@ -15,12 +15,10 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.OnbSensor
-import java.util.Arrays
 
 class CompositionRootGenerator {
 	
 	@Inject extension org.iot.codegenerator.typing.TypeChecker
-	var compile_wrapper = true
 	
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()
@@ -75,7 +73,7 @@ class CompositionRootGenerator {
 			def «board.providerName»(self):
 				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
 				«FOR sensor : board.sensors»
-					«board.name.asInstance».add_sensor("«sensor.sensortype.asModule»", self.«sensor.providerName»())
+					«addSensor(board, sensor)»
 				«ENDFOR»
 				«IF board.input !== null»«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())«ENDIF»
 				«FOR channel : env.channels.filter[it != board.input]»
@@ -83,6 +81,10 @@ class CompositionRootGenerator {
 				«ENDFOR»
 				return «board.name.asInstance»
 		'''
+	}
+	
+	private def addSensor(Board board, Sensor sensor){
+		'''«board.name.asInstance».add_sensor("«sensor.sensortype.asModule»", self.«sensor.providerName»())'''
 	}
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
@@ -120,9 +122,9 @@ class CompositionRootGenerator {
 	}
 	
 	private def determineSensorDriverLib(String sensortype){
-		if (sensortype == "thermometer")
+		if (sensortype == "thermometer" )
 			BoardGenerator.compileAsLibfile("/libfiles/hts221.py")
-		if(sensortype == "lux")
+		if(sensortype == "light")
 			BoardGenerator.compileAsLibfile("/libfiles/bh1750.py")
 		if(sensortype == "motion")
 			BoardGenerator.compileAsLibfile("/libfiles/mpu6050.py")
@@ -177,6 +179,9 @@ class CompositionRootGenerator {
 			}
 			case INVALID: {
 				throw new IllegalStateException("Encountered INVALID type in grammar during code generation")
+			}
+			case VOID: {
+				throw new IllegalStateException("Encountered VOID type in grammar during code generation")
 			}
 		}
 	}

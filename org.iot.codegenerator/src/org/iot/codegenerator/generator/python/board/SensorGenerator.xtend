@@ -13,12 +13,15 @@ import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import static extension org.iot.codegenerator.generator.python.ExpressionGenerator.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
+import com.google.inject.Inject
+import org.iot.codegenerator.generator.python.ExpressionGenerator
 
 class SensorGenerator {
-
+	
+	@Inject extension ExpressionGenerator
+	
 	def String compile(Sensor sensor) {
 		val env = new GeneratorEnvironment()
 		val classDef = sensor.compileClass(env)
@@ -86,8 +89,10 @@ class SensorGenerator {
 
 	private def String compileSensorSampling(Sensor sensor, GeneratorEnvironment env) {
 		'''
-		# TODO: Unsupported
-		pass
+			sampling = self.sensor.read_data()
+			for i, data_name in enumerate(self.variables):
+				pipeline = self.get_pipeline(data_name, i)
+				pipeline.handle(sampling)
 		'''
 	}
 
@@ -116,6 +121,7 @@ class SensorGenerator {
 	}
 	
 	private dispatch def String compileOut(ChannelOut out, GeneratorEnvironment env) {
+		firstReferanceProcessed = false
 		'''«out.pipeline.compileInterceptors(env)»'''
 	}
 
@@ -126,6 +132,7 @@ class SensorGenerator {
 				«pipeline.next.compileInterceptors(env)»
 			«ENDIF»
 		'''
+		
 	}
 
 	private def dispatch String compileInterceptor(Filter filter, GeneratorEnvironment env) {
@@ -141,19 +148,22 @@ class SensorGenerator {
 	}
 
 	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {
-		'''
-			class «map.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
-				def handle(self, «map.source.name.asInstance»):
-					print("Map")
-					_newValue = «map.expression.compile»
-					self.next.handle(_newValue)
-			
-		'''
+	
+			'''
+				class «map.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
+					def handle(self, «map.source.name.asInstance»):
+						print("Map")
+						_newValue = «map.expression.compile»
+						self.next.handle(_newValue)
+				
+			'''
+	
+	
 	}
-
+	
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {
 		'''
-			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
+			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»«env.useImport("pipeline", "WindowUtils")»):
 				def __init__(self, next: Interceptor):
 					super().__init__(next)
 					self._buffer = []
@@ -162,9 +172,9 @@ class SensorGenerator {
 					print("Window")
 					self._buffer.append(«window.source.name.asInstance»)
 					if len(self._buffer) == «window.width»:
-						_result = None # TODO: Unsupported
+						_newValue = «window.executePipeline.executePipelineMethod»(self._buffer)
 						self._buffer = []
-						self.next.handle(_result)
+						self.next.handle(_newValue)
 			
 		'''
 	}

@@ -28,9 +28,9 @@ class SensorProviderGenerator {
         «FOR sensor : board.sensors»
         «IF sensor instanceof OnbSensor»
 
-		class «sensor.sensortype»_wrapper(default_wrapper):
+		class «sensor.sensortype»_wrapper:
 		
-			def __init(self):
+			def __init__(self):
 				«sensor.getInitDriver(env)»
 			
 			def read_data(self):
@@ -41,7 +41,7 @@ class SensorProviderGenerator {
 	}
 	
 	private def String getInitDriver(Sensor sensor, GeneratorEnvironment env){
-		if (!Arrays.asList("thermometer", "lux", "moption").contains(sensor.sensortype)) {
+		if (!Arrays.asList("thermometer", "motion", "light").contains(sensor.sensortype)) {
 			return '''
 			# TODO: not yet supported
 			pass'''
@@ -49,7 +49,7 @@ class SensorProviderGenerator {
 			return '''
 			from hts221 import HTS221
 			self.driver = HTS221(i2c)'''
-		} else if (sensor.sensortype == "lux") {
+		} else if (sensor.sensortype == "light") {
 			return '''
 			from bh1750 import BH1750
 			self.driver = BH1750(i2c)'''
@@ -61,16 +61,16 @@ class SensorProviderGenerator {
 	}
 	
 	private def String getReadDriver(Sensor sensor, GeneratorEnvironment env){
-		if (!Arrays.asList("thermometer", "lux", "moption").contains(sensor.sensortype)) {
+		if (!Arrays.asList("thermometer", "motion", "light").contains(sensor.sensortype)) {
 			return '''
 			# TODO: not yet supported
 			return -1'''
 		} else if(sensor.sensortype == "thermometer") {
 			return ''' 
 			# returns tuple
-			return (self.driver.read_temp(), self.driver.read_humi())'''
-		} else if (sensor.sensortype == "lux") {
-			return '''return self.driver.luminance(0x10)'''
+			return (self.driver.read_temp(), self.driver.read_humi())'''  //TODO return dictionary?ﬁ
+		} else if (sensor.sensortype == "light") {
+			return '''return self.driver.luminance(0x10)'''   //TODO: return dictionary?
 		} else if (sensor.sensortype == "motion") {
 			return '''
 			# return a dictionary with 7 keys

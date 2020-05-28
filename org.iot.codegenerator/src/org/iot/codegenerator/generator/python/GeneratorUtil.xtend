@@ -1,6 +1,5 @@
 package org.iot.codegenerator.generator.python
 
-import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.FrequencySampler
 import org.iot.codegenerator.codeGenerator.Map
@@ -11,9 +10,22 @@ import org.iot.codegenerator.codeGenerator.SignalSampler
 import org.iot.codegenerator.codeGenerator.Window
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.ExecutePipeline
+import org.iot.codegenerator.codeGenerator.Reduce
+import org.iot.codegenerator.codeGenerator.Mean
+import org.iot.codegenerator.codeGenerator.Median
+import org.iot.codegenerator.codeGenerator.Mode
+import org.iot.codegenerator.codeGenerator.Var
+import org.iot.codegenerator.codeGenerator.StDev
+import org.iot.codegenerator.codeGenerator.Min
+import org.iot.codegenerator.codeGenerator.Max
+import org.iot.codegenerator.codeGenerator.Count
+import org.eclipse.xtend.lib.annotations.Accessors
 
 class GeneratorUtil {
-
+	
+	@Accessors static Boolean firstReferanceProcessed
+	
 	static def String asInstance(String name) {
 		'''_«name»'''
 	}
@@ -62,4 +74,20 @@ class GeneratorUtil {
 
 		'''Interceptor«type»«index»'''
 	}
+	
+	static def String executePipelineMethod(ExecutePipeline executePipeline){
+		val type = switch (executePipeline) {
+		    Reduce: "reduce"
+			Mean: "mean"
+		    Median: "median"
+		    Mode: "mode"
+		    Var: "var"
+		    StDev: "stdev"
+		    Min: "min" 
+		    Max: "max"
+		    Count: "count"
+		}
+		'''WindowUtils.«type»'''
+	}
+
 }
