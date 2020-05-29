@@ -67,10 +67,9 @@ class SensorProviderGenerator {
 			return -1'''
 		} else if(sensor.sensortype == "thermometer") {
 			return ''' 
-			# returns tuple
-			return (self.driver.read_temp(), self.driver.read_humi())'''  //TODO return dictionary?ﬁ
+			return dict(tmp=self.driver.read_temp(),hum=self.driver.read_humi())'''
 		} else if (sensor.sensortype == "light") {
-			return '''return self.driver.luminance(0x10)'''   //TODO: return dictionary?
+			return '''return dict(lux=int(self.driver.luminance(0x10)))'''
 		} else if (sensor.sensortype == "motion") {
 			return '''
 			# return a dictionary with 7 keys

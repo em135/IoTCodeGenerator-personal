@@ -125,6 +125,7 @@ class CompositionRootGenerator {
 	private def determineSensorDriverLib(String sensortype){
 		if (sensortype == "thermometer" )
 			BoardGenerator.compileAsLibfile("/libfiles/hts221.py")
+			BoardGenerator.compileAsLibfile("/libfiles/usmbus.py")
 		if(sensortype == "light")
 			BoardGenerator.compileAsLibfile("/libfiles/bh1750.py")
 		if(sensortype == "motion")
