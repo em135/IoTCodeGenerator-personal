@@ -47,7 +47,7 @@ class ExpressionGenerator {
 	}
 
 	def dispatch String compile(Unequal unequal) {
-		'''(«unequal.left.compile» not «unequal.right.compile»)'''
+		'''(«unequal.left.compile» != «unequal.right.compile»)'''
 	}
 
 	def dispatch String compile(LessThan lessThan) {
@@ -110,7 +110,7 @@ class ExpressionGenerator {
 	}
 
 	def dispatch String compile(BooleanLiteral booleanLiteral) {
-		'''«booleanLiteral.value.booleanValue.toString.toFirstUpper»'''
+		'''(«booleanLiteral.value.booleanValue.toString.toFirstUpper»)'''
 	}
 
 	def dispatch String compile(Reference reference) {

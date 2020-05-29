@@ -298,10 +298,12 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (channelOuts.size >1){
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
-				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
-						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
-					)
+				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
+					if (firstPipelineType !== currentPipelineType){
+						error('''expected «firstPipelineType» got «currentPipelineType»''',
+							channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
+						)
+					}
 				}
 			}
 		}
@@ -395,8 +397,10 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def checkExpression(Conditional conditional) {
 		conditional.condition.type.validateTypes(TypeChecker.Type.BOOLEAN,
 			CodeGeneratorPackage.Literals.CONDITIONAL__CONDITION)
-		conditional.incorrect.type.validateTypes(conditional.correct.type,
-			CodeGeneratorPackage.Literals.CONDITIONAL__INCORRECT)
+			if (! conditional.correct.type.numberType || ! conditional.incorrect.type.numberType) {
+				conditional.incorrect.type.validateTypes(conditional.correct.type,
+				CodeGeneratorPackage.Literals.CONDITIONAL__INCORRECT)
+			}
 	}
 
 	@Check
