@@ -8,6 +8,7 @@ import com.google.inject.Inject
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.HashMap
+import java.util.HashSet
 import java.util.List
 import java.util.Set
 import java.util.stream.Collectors
@@ -32,6 +33,7 @@ import org.iot.codegenerator.codeGenerator.GreaterThanEqual
 import org.iot.codegenerator.codeGenerator.Language
 import org.iot.codegenerator.codeGenerator.LessThan
 import org.iot.codegenerator.codeGenerator.LessThanEqual
+import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
@@ -47,18 +49,15 @@ import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.TuplePipeline
 import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.TuplePipeline
-import org.iot.codegenerator.codeGenerator.Map
-import org.iot.codegenerator.codeGenerator.ExecutePipeline
-import org.iot.codegenerator.codeGenerator.Window
-import java.util.HashSet
 
 /**
  * This class contains custom validation rules. 
@@ -539,4 +538,15 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
+	
+	@Check
+	def checkUniqueBoardNames(Board board){
+		val config = board.getContainerOfType(DeviceConf)
+		for (Board b: config.board.filter[it !== board]){
+			if (board.name.equals(b.name)){
+				error('''duplicate «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
+			}
+		}
+	}
+
 }
