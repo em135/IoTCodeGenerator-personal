@@ -19,21 +19,19 @@ Channel:
 	'channel' name=ID
 ;
 
+
 Board:
-	ConcreteBoard | AbstractBoard
+	(ConcreteBoard | AbstractBoard)('extends' superTypes += [AbstractBoard])?  BEGIN
+		('in' input=[Channel])? sensors+=Sensor+
+	END
 ;
 
 ConcreteBoard returns Board:
 	'board' name=ID 
-		('extends' superType = [AbstractBoard])? BEGIN
-		('in' input=[Channel])? sensors+=Sensor+
-	END
 ;
 
 AbstractBoard:
-	'abstract' 'board' name=ID ('extends' superType = [AbstractBoard])? BEGIN
-		('in' input=[Channel])? sensors+=Sensor+
-	END
+	'abstract' 'board' name=ID
 ;
 
 Sensor:
@@ -99,7 +97,7 @@ MapPipeline:
 ;
 
 WindowPipeline:
-	{Window} 'byWindow' '(['width=INT']' '.' executePipeline=ExecutePipeline
+	{Window} 'byWindow' '('width=INT ',' executePipeline=ExecutePipeline
 ;
 
 ExecutePipeline:

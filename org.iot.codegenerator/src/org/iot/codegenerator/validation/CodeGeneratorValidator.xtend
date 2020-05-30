@@ -58,6 +58,7 @@ import org.iot.codegenerator.codeGenerator.TuplePipeline
 import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.ExecutePipeline
 import org.iot.codegenerator.codeGenerator.Window
+import java.util.HashSet
 
 /**
  * This class contains custom validation rules. 
@@ -494,21 +495,27 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def checkPower(Not not) {
 		not.value.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.NOT__VALUE)
 	}
-
-	@Check
-	def checkNoCycleInEntityHierarchy(Board board) {
-		if (board.superType === null) {
-			return
+	
+	def boolean hasCycle(Board current, HashSet<Board> visited){
+		if (visited.contains (current)){
+			return true
 		}
-		val visited = newHashSet(board)
-		var current = board.superType
-		while (current !== null) {
-			if (visited.contains(current)) {
-				error('''cyclic inheritance in hierarchy of board «current.name»''', CodeGeneratorPackage.Literals.BOARD__SUPER_TYPE)
-				return
+		visited.add(current)
+	
+		for (Board board: current.superTypes){
+			if (hasCycle(board, visited)){
+				return true
 			}
-			visited.add(current)
-			current = current.superType
+		}
+		visited.remove(current)
+		return false
+	}
+	
+	@Check
+	def checkNoCycleInBoardHierarchy(Board board) {
+		val visited = new HashSet<Board>
+		if (hasCycle(board, visited)){
+			error('''cyclic inheritance in hierarchy of board «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
 	

@@ -11,6 +11,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.generator.python.board.BoardGenerator
+import org.iot.codegenerator.codeGenerator.AbstractBoard
 
 /**
  * Generates code from your model files on save.
@@ -25,8 +26,10 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 		fsa.generateFile("config.json", resource.allContents.toIterable.filter(Channel).compile)
 		
 		val board = resource.allContents.filter(Board).next()
-		board.compile(fsa)
-		
+		if (!(board instanceof AbstractBoard)){
+			board.compile(fsa)
+		}
+	
 		//val fog = resource.allContents.filter(Fog).next()
 		// TODO
 		
