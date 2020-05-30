@@ -21,8 +21,8 @@ Channel:
 
 
 Board:
-	(ConcreteBoard | AbstractBoard)('extends' superTypes += [AbstractBoard])?  BEGIN
-		('in' input=[Channel])? sensors+=Sensor+
+	(ConcreteBoard | AbstractBoard)('extends' superTypes += [AbstractBoard] (',' superTypes += [AbstractBoard])*)?  BEGIN
+		('in' input=[Channel])? sensors+=Sensor*
 	END
 ;
 

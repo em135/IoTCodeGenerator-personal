@@ -519,4 +519,24 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
+	def boolean hasSensor(Board current){
+		if (current.sensors.size !== 0){
+			return true
+		}
+		
+		for(Board board : current.superTypes){
+			if (board.hasSensor){
+				return true
+			}
+		}
+		return false
+	}
+	
+	
+	@Check
+	def checkBoardHasSensor(Board board){
+		if (!(board.hasSensor)){
+			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
+		}
+	}
 }
