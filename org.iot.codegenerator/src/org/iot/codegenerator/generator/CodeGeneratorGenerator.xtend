@@ -23,10 +23,9 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 	@Inject extension BoardGenerator
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		fsa.generateFile("config.json", resource.allContents.toIterable.filter(Channel).compile)
-		
 		val board = resource.allContents.filter(Board).next()
 		if (!(board instanceof AbstractBoard)){
+			fsa.generateFile("config.json", resource.allContents.toIterable.filter(Channel).compile)
 			board.compile(fsa)
 		}
 	

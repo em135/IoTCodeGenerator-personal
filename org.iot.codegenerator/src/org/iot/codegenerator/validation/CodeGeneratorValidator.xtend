@@ -58,6 +58,15 @@ import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.eclipse.xtext.resource.IContainer
+import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
+import org.eclipse.xtext.resource.IEObjectDescription
+import org.eclipse.xtext.resource.XtextResourceSet
+import org.eclipse.xtext.resource.IResourceDescriptions
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.emf.ecore.EClass
+import org.eclipse.xtext.validation.CheckType
+import org.iot.codegenerator.codeGenerator.AbstractBoard
 
 /**
  * This class contains custom validation rules. 
@@ -70,9 +79,12 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	public static val INCORRECT_INPUT_TYPE_I2C = "org.iot.codegenerator.IncorrectInputTypeI2c"
 	public static val UNUSED_VARIABLE = "org.iot.codegenerator.UnusedVariable"
 
-	@Inject
-	extension TypeChecker
-
+	@Inject extension TypeChecker
+	@Inject extension IQualifiedNameProvider
+	@Inject IContainer.Manager containerManager
+	@Inject IResourceDescriptions resourceDescriptions
+	
+	
 //	@Check(CheckType.NORMAL)
 //	def checkDeviceConfiguration(DeviceConf configuration) {
 //		val boards = configuration.board
@@ -294,8 +306,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	} 
 	
 	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
-		val firstPipelineType = channelOuts.get(0).pipeline.lastType
-		if (channelOuts.size >1){
+		if (channelOuts.size !==0){
+			val firstPipelineType = channelOuts.get(0).pipeline.lastType
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
@@ -495,29 +507,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		not.value.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.NOT__VALUE)
 	}
 	
-	def boolean hasCycle(Board current, HashSet<Board> visited){
-		if (visited.contains (current)){
-			return true
-		}
-		visited.add(current)
-	
-		for (Board board: current.superTypes){
-			if (hasCycle(board, visited)){
-				return true
-			}
-		}
-		visited.remove(current)
-		return false
-	}
-	
-	@Check
-	def checkNoCycleInBoardHierarchy(Board board) {
-		val visited = new HashSet<Board>
-		if (hasCycle(board, visited)){
-			error('''cyclic inheritance in hierarchy of board «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
-		}
-	}
-	
+		
 	def boolean hasSensor(Board current){
 		if (current.sensors.size !== 0){
 			return true
@@ -531,15 +521,44 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		return false
 	}
 	
+	def boolean hasCycle(Board current, HashSet<Board> visited){
+		if (visited.contains (current)){
+			return true
+		}
+		visited.add(current)
+	
+		for (Board board: current.superTypes){
+			if (board.name === current.name || hasCycle(board, visited)){
+				return true
+			}
+		}
+		visited.remove(current)
+		return false
+	}
+	
 	
 	@Check
-	def checkBoardHasSensor(Board board){
+	def checkBoard(Board board) {
+		val visited = new HashSet<Board>
+		if (hasCycle(board, visited)){
+			error('''cyclic inheritance in hierarchy of board «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
+			return
+		}
 		if (!(board.hasSensor)){
 			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
 	
-	@Check
+//	def checkUniuqeSuperBoards(AbstractBoard abstractBoard){
+//		val board = abstractBoard.getContainerOfType(Board)
+//		for (AbstractBoard ab : board.superTypes){
+//			if (abstractBoard.name.equals(ab.name)){
+//				error('''duplicate «abstractBoard.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
+//			}
+//		}
+//	}
+	
+	@Check(CheckType.NORMAL)
 	def checkUniqueBoardNames(Board board){
 		val config = board.getContainerOfType(DeviceConf)
 		for (Board b: config.board.filter[it !== board]){
@@ -547,6 +566,36 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				error('''duplicate «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
 			}
 		}
+		val boardNames = board.superTypes.map[abstractBoard | abstractBoard.name]
+		val uniqueBoardNames = new HashSet<String>
+		val duplicated = boardNames.filter[ab | ab !== null && !uniqueBoardNames.add(ab)].toSet
+		if (!(duplicated.empty)){
+			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
+		}
 	}
 
+	def visibleContainers(EObject eObject) {
+		val resourceDescription = eObject.resourceDescription
+		containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)
+	}
+	
+	def resourceDescription(EObject eObject) {
+		resourceDescriptions.getResourceDescription(eObject.eResource.URI)
+	}
+	
+	@Check(CheckType.NORMAL)
+	def checkDuplicateClassesInFiles(DeviceConf conf) {
+		val boardType = CodeGeneratorPackage.eINSTANCE.board
+		val boards = conf.visibleContainers.map[ container | container.getExportedObjectsByType(boardType)].flatten
+		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
+		val externalBoards = boards.toSet
+		externalBoards.removeAll(exportedBoards.toSet)
+		val externalBoardNames= externalBoards.toMap[qualifiedName]
+		
+		for (board : conf.board) {
+			if (externalBoardNames.containsKey(board.fullyQualifiedName)) {
+				error("The type " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
+			}
+	}
+	
 }

@@ -120,7 +120,6 @@ class TypeChecker {
 //			}
 			pipe = pipe.next
 		}
-		System.out.println("Type for pipe: " + pipe + " is: " + type)
 		return type
 	}
 	
