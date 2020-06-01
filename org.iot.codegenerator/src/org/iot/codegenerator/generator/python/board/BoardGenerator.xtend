@@ -8,7 +8,7 @@ import org.iot.codegenerator.codeGenerator.ScreenOut
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class BoardGenerator {
-
+	// Changed with sensors
 	@Inject CompositionRootGenerator compositionRootGenerator
 	@Inject SensorProviderGenerator sensorProviderGenerator
 	@Inject DeviceGenerator deviceGenerator
@@ -29,7 +29,7 @@ class BoardGenerator {
 			fsa.generateFile('''board/main.py''', compileMain(board))
 		}
 
-		board.sensors.forEach [
+		board.inheritedSensors.forEach [
 			fsa.generateFile('''board/«sensortype».py''', sensorGenerator.compile(it))
 		]
 

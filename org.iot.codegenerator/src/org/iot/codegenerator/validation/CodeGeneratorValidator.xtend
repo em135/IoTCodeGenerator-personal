@@ -285,11 +285,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
-	
-	@Check
-	def validateDataOut(Variables variables){
-		variables.cacheVariables
-	} 
 
 	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
 		if (transformationOuts.size >1){

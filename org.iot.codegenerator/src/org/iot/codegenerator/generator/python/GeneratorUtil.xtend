@@ -19,6 +19,11 @@ import org.iot.codegenerator.codeGenerator.Count
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.iot.codegenerator.codeGenerator.Minimum
 import org.iot.codegenerator.codeGenerator.Maximum
+import java.util.HashMap
+import org.iot.codegenerator.codeGenerator.Board
+import java.util.HashSet
+import org.iot.codegenerator.codeGenerator.AbstractBoard
+import java.util.Collection
 
 class GeneratorUtil {
 	
@@ -71,6 +76,23 @@ class GeneratorUtil {
 		].size + 1
 
 		'''Interceptor«type»«index»'''
+	}
+	
+	static def inheritedSensors(Board board){
+		val visited = new HashSet<Board>
+		val nameSensor = new HashMap<String, Sensor> // Change list of objects to sensor
+		dfs(board, visited, nameSensor)
+	}
+	
+	static def Collection<Sensor> dfs(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){ // change list of objects to sensor
+		visited.add(board)
+		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)] // change list of object to snesor
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfs(abstractBoard, visited, nameSensor)
+			}
+		}
+		return nameSensor.values
 	}
 	
 	static def String executePipelineMethod(ExecutePipeline executePipeline){

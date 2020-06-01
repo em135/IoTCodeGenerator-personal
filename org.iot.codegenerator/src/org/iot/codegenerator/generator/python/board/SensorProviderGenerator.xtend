@@ -5,9 +5,11 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import java.util.Arrays
+import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class SensorProviderGenerator { 
 	
+	// Changed with sensor
 	def compile(Board board) {
 		val env = new GeneratorEnvironment()
 		
@@ -25,7 +27,7 @@ class SensorProviderGenerator {
 			# returns data value(s)
 			def read_data(self):
 				return -1
-        «FOR sensor : board.sensors»
+        «FOR sensor : board.inheritedSensors»
         «IF sensor instanceof OnbSensor»
 
 		class «sensor.sensortype»_wrapper:
@@ -67,7 +69,7 @@ class SensorProviderGenerator {
 			return -1'''
 		} else if(sensor.sensortype == "thermometer") {
 			return ''' 
-			return dict(tmp=self.driver.read_temp(),hum=self.driver.read_humi())'''
+			return dict(tmp=int(self.driver.read_temp()),hum=int(self.driver.read_humi()))'''
 		} else if (sensor.sensortype == "light") {
 			return '''return dict(lux=int(self.driver.luminance(0x10)))'''
 		} else if (sensor.sensortype == "motion") {

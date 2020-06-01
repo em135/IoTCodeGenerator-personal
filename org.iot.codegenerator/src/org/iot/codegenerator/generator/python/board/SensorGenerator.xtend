@@ -19,7 +19,6 @@ import com.google.inject.Inject
 import org.iot.codegenerator.generator.python.ExpressionGenerator
 
 class SensorGenerator {
-	
 	@Inject extension ExpressionGenerator
 	
 	def String compile(Sensor sensor) {

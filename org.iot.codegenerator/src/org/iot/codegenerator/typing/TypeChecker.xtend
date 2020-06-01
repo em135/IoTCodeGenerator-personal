@@ -20,10 +20,11 @@ import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.codeGenerator.ModifyPipeline
+import org.iot.codegenerator.codeGenerator.Filter
 
 class TypeChecker {
 
-	@Inject OnChangeEvictingCache cache
+	@Inject extension ReferenceTypeProvider
 
 	enum Type {
 		INT,
@@ -95,32 +96,11 @@ class TypeChecker {
 	}
 	
 	def Type lastType(Pipeline pipeline){	
-		var type = Type.INT
 		var pipe = pipeline
-		while(pipe !== null){
-			if (pipe instanceof ModifyPipeline){
-				val output = pipe.output.name
-				if (pipe instanceof Map) {
-					val mapPipeline = (pipe as Map)
-					type = mapPipeline.expression.type
-					cache.getOrCreate(mapPipeline.eResource).set(output, type)
-				} else if (pipe instanceof Window) {
-					val windowPipeline = (pipe as Window)
-					type = Type.DOUBLE
-					cache.getOrCreate(windowPipeline.eResource).set(output, type)
-				} 
-			}
-			
-			
-//			else {
-//				switch(pipe){
-//					case Count, Max, Mean, Median, Min, Mode, Reduce, StDev, Var, WindowPipeline:
-//						type = Type.INT // TODO FLOAT?
-//				}
-//			}
+		while(pipe.next !== null){
 			pipe = pipe.next
 		}
-		return type
+		pipe.typeOfPipeline
 	}
 	
 	def Pipeline lastPipeline(Pipeline pipeline){
@@ -130,12 +110,27 @@ class TypeChecker {
 		}
 		return pipe
 	}
+	
+	def dispatch Type typeOfPipeline(Filter filter) {
+		filter.inputTypeOfPipeline
+	}
 
-	def cacheVariables(Variables variables){
-		for (Variable variable : variables.ids){
-			cache.getOrCreate(variable.eResource).set(variable.name, Type.INT)
+	def dispatch Type typeOfPipeline(Map map) {
+		map.expression.type
+	}
+
+	def dispatch Type typeOfPipeline(Window window) {
+		Type.DOUBLE
+	}
+
+	def inputTypeOfPipeline(Pipeline pipeline) {
+		val precedingPipeline = pipeline.eContainer
+		switch precedingPipeline {
+			Pipeline: precedingPipeline.typeOfPipeline
+			default: Type.INT
 		}
 	}
+	
 	
 	def dispatch Type type(Plus plus) {
 		if (plus.left.type == Type.STRING || plus.right.type == Type.STRING) {
@@ -174,7 +169,10 @@ class TypeChecker {
 	}
 
 	def dispatch Type type(Reference reference) {
-		val cached = cache.get(reference.variable.name, reference.eResource, [Type.INVALID])
-		return cached
+		if (reference?.variable?.name === null) {
+			return Type.INVALID
+		}
+
+		return reference.typeOf(this)
 	}
 }

@@ -7,7 +7,8 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 
 class DeviceGenerator {
-
+	// Changed with sensors
+	
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()
 		val classDef = board.compileClass(env)
@@ -75,7 +76,7 @@ class DeviceGenerator {
 	}
 
 	private def String compileRunMethod(Board board, GeneratorEnvironment env) {
-		val frequencySensors = board.sensors.filter[isFrequency]
+		val frequencySensors = board.inheritedSensors.filter[isFrequency]
 
 		'''
 			def run(self):

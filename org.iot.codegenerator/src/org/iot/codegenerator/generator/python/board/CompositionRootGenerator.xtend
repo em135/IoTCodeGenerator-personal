@@ -18,7 +18,7 @@ import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.OnbSensor
 
 class CompositionRootGenerator {
-	
+	//Changed with sensors
 	@Inject extension org.iot.codegenerator.typing.TypeChecker
 	
 	def String compile(Board board) {
@@ -73,7 +73,7 @@ class CompositionRootGenerator {
 		'''
 			def «board.providerName»(self):
 				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
-				«FOR sensor : board.sensors»
+				«FOR sensor : board.inheritedSensors»
 					«addSensor(board, sensor)»
 				«ENDFOR»
 				«IF board.input !== null»«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())«ENDIF»
@@ -90,7 +90,7 @@ class CompositionRootGenerator {
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors» 
+			«FOR sensor : board.inheritedSensors» 
 				def «sensor.providerName»(self):
 					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»«IF sensor instanceof OnbSensor»(self.provide_driver_«sensor.sensortype»())«ELSE»(self.provide_driver_default())«ENDIF»
 					«FOR data : sensor.sensorDatas»
@@ -106,7 +106,7 @@ class CompositionRootGenerator {
 	
 	private def String computeSensorProviders(Board board, GeneratorEnvironment env){
 		'''
-			«FOR sensor : board.sensors»
+			«FOR sensor : board.inheritedSensors»
 				«IF sensor instanceof OnbSensor»«sensor.compileSensorProvider(env)»«ENDIF»
 			«ENDFOR»
 		'''
@@ -135,7 +135,7 @@ class CompositionRootGenerator {
 	// TODO: Driver provider
 	private def String compilePipelineProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors»
+			«FOR sensor : board.inheritedSensors»
 				«FOR data : sensor.sensorDatas»
 					«FOR out : data.outputs»
 						«out.compilePipelineProvider(env)»
