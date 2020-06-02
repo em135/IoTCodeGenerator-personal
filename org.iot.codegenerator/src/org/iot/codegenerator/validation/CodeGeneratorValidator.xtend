@@ -15,11 +15,16 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.resource.IContainer
+import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
+import org.iot.codegenerator.codeGenerator.ConcreteBoard
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
@@ -58,15 +63,6 @@ import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.eclipse.xtext.resource.IContainer
-import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
-import org.eclipse.xtext.resource.IEObjectDescription
-import org.eclipse.xtext.resource.XtextResourceSet
-import org.eclipse.xtext.resource.IResourceDescriptions
-import org.eclipse.xtext.naming.IQualifiedNameProvider
-import org.eclipse.emf.ecore.EClass
-import org.eclipse.xtext.validation.CheckType
-import org.iot.codegenerator.codeGenerator.AbstractBoard
 
 /**
  * This class contains custom validation rules. 
@@ -116,9 +112,17 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 //	}
 
 	@Check
+	def validateConcreteBoard(DeviceConf configuration){
+		val concreteBoards = configuration.board.filter(board | board instanceof ConcreteBoard)
+		if (concreteBoards.size>1){
+			error('''There must max be 1 concrete board''', concreteBoards.get(0), CodeGeneratorPackage.eINSTANCE.board_Name)
+		}
+	}
+		
+	@Check
 	def validateBoard(Board board) {
 		val b = new ESP32()
-		info('''«board.name» supports the following sensors: «b.sensors»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+		info('''«board.name» supports the following sensors: «String.join(", ", b.sensors)»''', CodeGeneratorPackage.eINSTANCE.board_Name)
 	}
 	 
 	@Check
