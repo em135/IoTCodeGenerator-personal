@@ -117,7 +117,6 @@ class ExpressionGenerator {
 		val sensor = reference.getContainerOfType(Sensor)
 		val variableName = sensor.variables.name
 		if (!firstReferanceProcessed) {
-			firstReferanceProcessed = true
 			'''«variableName.asInstance»['«reference.variable.name»']'''
 		} else {
 			'''«variableName.asInstance»'''

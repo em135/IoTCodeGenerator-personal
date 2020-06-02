@@ -146,9 +146,8 @@ class SensorGenerator {
 		'''
 	}
 
-	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {
-	
-			'''
+	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {	
+			val compiledMap = '''
 				class «map.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 					def handle(self, «map.source.name.asInstance»):
 						print("Map")
@@ -156,8 +155,8 @@ class SensorGenerator {
 						self.next.handle(_newValue)
 				
 			'''
-	
-	
+			firstReferanceProcessed = true
+			compiledMap
 	}
 	
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {

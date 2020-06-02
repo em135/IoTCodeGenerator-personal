@@ -10,7 +10,6 @@ class GeneratorEnvironment {
 
 	Map<String, Set<String>> imports
 	Set<Channel> channels
-	Boolean firstMapProcessed;
 	
 	new() {
 		imports = new HashMap()
@@ -51,11 +50,4 @@ class GeneratorEnvironment {
 		return channels
 	}
 	
-	def Boolean isFirstMapProcessed(){
-		return firstMapProcessed
-	}
-	
-	def Boolean setFirstMapProcessed(Boolean bool){
-		firstMapProcessed = bool
-	}
 }
