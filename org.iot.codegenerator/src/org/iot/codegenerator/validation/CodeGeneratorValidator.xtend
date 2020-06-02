@@ -397,7 +397,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Check
 	def validateFilterExpression(Filter filter) {
 		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
-			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
+			CodeGeneratorPackage.Literals.FILTER__EXPRESSION)
 	}
 
 	@Check

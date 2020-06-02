@@ -8,7 +8,7 @@ generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
 // ensure that board, fog, and cloud are not overwritten. This grammar is loose
 // and allows for specifying things in any order
 DeviceConf:
-	language=Language (channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+	language=Language (board+=Board | fog+=Fog | cloud+=Cloud)*
 ;
 
 Language:
@@ -23,6 +23,7 @@ Channel:
 Board:
 	({ConcreteBoard} 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)? | 
 	 {AbstractBoard} 'abstract' 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?) (BEGIN
+		channels+=Channel
 		('in' input=[Channel])? sensors+=Sensor*
 	 END)?
 ;
@@ -78,7 +79,7 @@ Pipeline:
 ;
 
 TuplePipeline:
-	({Filter} 'filter' | {Abs} 'abs') '('expression=Expression')'
+	{Filter} 'filter' '('expression=Expression')'
 ;
 
 ModifyPipeline:
@@ -99,9 +100,9 @@ ExecutePipeline:
     {Var} 'var' |
     {StDev} 'stdev' |
     {Minimum} 'min' |
-    {Maximum} 'max' |
-    {Count} 'count'
+    {Maximum} 'max' 
 ;
+
 // The expression rules are loose allowing for meaningless expressions to be
 // formed. Well-typedness will be ensured using validators
 Expression:

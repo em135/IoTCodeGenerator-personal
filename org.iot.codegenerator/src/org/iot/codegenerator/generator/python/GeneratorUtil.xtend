@@ -15,7 +15,6 @@ import org.iot.codegenerator.codeGenerator.Mean
 import org.iot.codegenerator.codeGenerator.Median
 import org.iot.codegenerator.codeGenerator.Var
 import org.iot.codegenerator.codeGenerator.StDev
-import org.iot.codegenerator.codeGenerator.Count
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.iot.codegenerator.codeGenerator.Minimum
 import org.iot.codegenerator.codeGenerator.Maximum
@@ -103,7 +102,6 @@ class GeneratorUtil {
 		    StDev: "stdev"
 		    Minimum: "minimum" 
 		    Maximum: "maximum"
-		    Count: "count"
 		}
 		'''«type»'''
 	}

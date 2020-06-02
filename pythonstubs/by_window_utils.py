@@ -40,10 +40,6 @@ def sqrt(value):
     return mid
 
 
-def count(values):
-    return len(values)
-
-
 def minimum(values):
     return min(values)
 
