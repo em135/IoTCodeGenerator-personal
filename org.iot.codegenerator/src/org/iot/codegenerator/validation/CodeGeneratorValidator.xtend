@@ -125,15 +125,15 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateOnboardSensor(Sensor sensor) {
 		if (sensor instanceof OnbSensor){
 			val board = new ESP32()
-			val s = sensor as OnbSensor
-			val parameterCount = board.getParameterCount(s.sensortype)
+			sensor.variables.ids
+			val parameterCount = board.getParameterCount(sensor.sensortype)
 
 			if (parameterCount == -1) {
-				error('''Board does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (parameterCount < s.variables.ids.length) {
-				error('''Maximum number of output variables for sensor type «s.sensortype» is «parameterCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (parameterCount > s.variables.ids.length) {
-				info('''«s.sensortype» supports up to «parameterCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+				error('''Board does not support sensor: «sensor.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (parameterCount < sensor.variables.ids.length) {
+				error('''Maximum number of output variables for sensor type «sensor.sensortype» is «parameterCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (parameterCount > sensor.variables.ids.length) {
+				info('''«sensor.sensortype» supports up to «parameterCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			}
 		}
 	}
@@ -141,12 +141,23 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Check
 	def validatePinsMatchesVars(Variables variables) {
 		val parent = variables.eContainer
+		val board = new ESP32()
 		switch parent {
 			ExtSensor:
 				if (parent.pins.size() < variables.ids.size()) {
 					error('''Expected «parent.pins.size()» pin inputs, got «variables.ids.size()»''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
 				} else if (parent.pins.size() > variables.ids.size()) {
 					warning('''Number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
+				}
+			OnbSensor:
+				if(board.sensors.contains(parent.sensortype)){
+					val legalVariables = board.getSensorVariables(parent.sensortype)
+					for (Variable variable : variables.ids){
+						if (!(legalVariables.contains(variable.name))){
+							error('''Unsupported variable «variable.name». The «parent.sensortype» sensor supports the variables «String.join(", ", legalVariables)»''',
+								variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+						}
+					}
 				}
 		}
 	}
