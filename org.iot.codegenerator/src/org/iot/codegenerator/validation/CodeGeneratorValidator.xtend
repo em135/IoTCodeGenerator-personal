@@ -63,6 +63,9 @@ import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.Channel
+import org.iot.codegenerator.codeGenerator.AbstractBoard
+import java.util.Collection
 
 /**
  * This class contains custom validation rules. 
@@ -110,7 +113,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 //			return
 //		}
 //	}
+	
 
+	
+	@Check
+	def checkChannels (Channel channel){
+		val board = channel.getContainerOfType(Board)
+		for (Channel c: board.channels.filter[it !== channel]){
+			if (channel.name.equals(c.name)){
+				error('''duplicate channel «channel.name»''', CodeGeneratorPackage.Literals.CHANNEL__NAME)
+			}
+		}
+	}
+	
+
+	
 	@Check
 	def validateConcreteBoard(DeviceConf configuration){
 		val concreteBoards = configuration.board.filter(board | board instanceof ConcreteBoard)
@@ -176,7 +193,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
 	}
-	
+
 
 	def checkNoDuplicateDataName(List<Data> datas) {
 		val dataNameValues = new HashMap<String, Set<Data>>
@@ -229,11 +246,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (!list.exists[it.provider == data]) {
 			warning('''Unused variable''', data, CodeGeneratorPackage.Literals.DATA__NAME, UNUSED_VARIABLE)
 			
-		}
+		} 
 
 	}
 
-	@Check
+	@Check // TODO
 	def validateData(Data data) {
 		var datas = new ArrayList<Data>
 		var sensors = new ArrayList<Sensor>
@@ -263,12 +280,50 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 					}
 				}
 
-				checkNoDuplicateDataName(datas)
+//				checkNoDuplicateDataName(datas)
 				checkNoDuplicateSensorName(sensors)
 				return
 			}
 		}
+	}	
+		
+	def private Collection<Data> dfs(Board board, HashSet<Board> visited, HashMap<String, Data> nameData){
+		visited.add(board)
+		board.sensors.forEach[sensor | sensor.datas.forEach[data | nameData.put(data.name, data)]] 
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfs(abstractBoard, visited, nameData)
+			}
+		}
+		return nameData.values
 	}
+	
+	
+	@Check
+	def checkUniqueDataNames(Data data){
+		val sensor = data.getContainerOfType(Sensor)
+		val board = sensor.getContainerOfType(Board)
+		
+		val datas = dfs(board, new HashSet<Board>, new HashMap<String, Data>)
+		
+		for(Data d: datas.filter[it !== data]){
+			if (data.name.equals(d.name)){
+				error('''duplicate «data.name»''', CodeGeneratorPackage.Literals.DATA__NAME)
+			}
+		}
+		
+		for (Sensor s : board.sensors){
+			for (d : s.datas.filter[it !== data]){
+				if (d.name.equals(data.name)){
+				error('''duplicate «data.name»''', CodeGeneratorPackage.Literals.DATA__NAME)
+			}
+			}
+		}
+	}
+	
+	
+	
+	
 	
 	
 	def checkNoDuplicateVariableNamesInStatement(List<Variable> variables) {
@@ -583,6 +638,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
+	
+	
 
 	def visibleContainers(EObject eObject) {
 		val resourceDescription = eObject.resourceDescription
@@ -594,7 +651,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check(CheckType.NORMAL)
-	def checkDuplicateClassesInFiles(DeviceConf conf) {
+	def checkDuplicateBoardsInFiles(DeviceConf conf) {
 		val boardType = CodeGeneratorPackage.eINSTANCE.board
 		val boards = conf.visibleContainers.map[ container | container.getExportedObjectsByType(boardType)].flatten
 		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
