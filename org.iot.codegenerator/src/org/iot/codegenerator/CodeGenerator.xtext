@@ -24,7 +24,8 @@ Board:
 	({ConcreteBoard} 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)? | 
 	 {AbstractBoard} 'abstract' 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?) (BEGIN
 		channels+=Channel* 
-		('in' input=[Channel])? sensors+=Sensor*
+		('in' input=[Channel])?
+		sensors+=Sensor*
 	 END)?
 ;
 
@@ -67,7 +68,7 @@ SensorDataOut:
 ;
 
 ScreenOut:
-	'oled' prints+=Expression
+	'out' 'oled' prints+=Expression
 ;
 
 ChannelOut:

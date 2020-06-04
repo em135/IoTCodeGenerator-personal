@@ -148,7 +148,6 @@ class CompositionRootGenerator {
 
 	private def dispatch String compilePipelineProvider(ChannelOut out, GeneratorEnvironment env) {
 		env.useImport("pipeline", "Pipeline")
-		env.useImport("struct")
 		
 		val sink = '''
 		type('Sink', (object,), {
