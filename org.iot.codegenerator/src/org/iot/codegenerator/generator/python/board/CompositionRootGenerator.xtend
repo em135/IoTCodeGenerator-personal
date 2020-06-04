@@ -59,7 +59,7 @@ class CompositionRootGenerator {
 
 		'''
 			def __init__(self):
-				«FOR channel : env.channels»
+				«FOR channel : board.inheritedChannels»
 					self.«channel.name.asInstance» = None
 				«ENDFOR»
 				
@@ -76,8 +76,8 @@ class CompositionRootGenerator {
 				«FOR sensor : board.inheritedSensors»
 					«addSensor(board, sensor)»
 				«ENDFOR»
-				«IF board.input !== null»«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())«ENDIF»
-				«FOR channel : env.channels.filter[it != board.input]»
+«««				«IF board.input !== null»«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())«ENDIF»
+				«FOR channel : board.inheritedChannels»
 					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
 				return «board.name.asInstance»
@@ -210,7 +210,7 @@ class CompositionRootGenerator {
 
 	private def String compileChannelProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR channel : env.channels»
+			«FOR channel : board.inheritedChannels»
 				def «channel.providerName»(self):
 					if not self.«channel.name.asInstance»:
 						self.«channel.name.asInstance» = self.make_channel("«channel.name»")

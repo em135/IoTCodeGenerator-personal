@@ -23,6 +23,7 @@ import org.iot.codegenerator.codeGenerator.Board
 import java.util.HashSet
 import org.iot.codegenerator.codeGenerator.AbstractBoard
 import java.util.Collection
+import org.iot.codegenerator.codeGenerator.Channel
 
 class GeneratorUtil {
 	
@@ -94,6 +95,23 @@ class GeneratorUtil {
 		return nameSensor.values
 	}
 	
+	static def inheritedChannels(Board board){
+		val visited = new HashSet<Board>
+		val nameChannel = new HashMap<String, Channel> 
+		dfsChannels(board, visited, nameChannel)
+	}
+	
+		
+	static def private Collection<Channel> dfsChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameChannel){
+		visited.add(board)
+		board.channels.forEach[channel | nameChannel.put(channel.name, channel)]
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfsChannels(abstractBoard, visited, nameChannel)
+			}
+		}
+		return nameChannel.values
+	}
 	static def String executePipelineMethod(ExecutePipeline executePipeline){
 		val type = switch (executePipeline) {
 			Mean: "mean"

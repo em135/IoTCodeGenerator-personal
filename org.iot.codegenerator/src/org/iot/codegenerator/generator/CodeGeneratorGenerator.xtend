@@ -13,6 +13,7 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.generator.python.board.BoardGenerator
 
+import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 /**
  * Generates code from your model files on save.
  * 
@@ -25,7 +26,7 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val board = resource.allContents.filter(Board).next()
 		if (!(board instanceof AbstractBoard)){
-			fsa.generateFile("config.json", resource.allContents.toIterable.filter(Channel).compile)
+			fsa.generateFile("config.json", board.inheritedChannels.compile)
 			board.compile(fsa)
 		}
 		
