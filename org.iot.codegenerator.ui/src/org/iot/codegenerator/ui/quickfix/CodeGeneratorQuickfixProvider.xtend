@@ -10,9 +10,9 @@ import org.eclipse.xtext.ui.editor.quickfix.Fix
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.validation.Issue
 import org.iot.codegenerator.codeGenerator.DeviceConf
-import org.iot.codegenerator.validation.CodeGeneratorValidator
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import static extension org.iot.codegenerator.validation.IssueCodesProvider.*
 
 /**
  * Custom quickfixes.
@@ -21,7 +21,7 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
  */
 class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 
-	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
+	@Fix(UNUSED_VARIABLE)
 	def void insertUsageOfVariable(Issue issue, IssueResolutionAcceptor acceptor) {
 		acceptor.accept(issue, "Use the variable in fog",
 			"The variable is not used, please consider using the variable", null, [ element, context |
@@ -37,7 +37,7 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 	}
 
 	
-	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
+	@Fix(UNUSED_VARIABLE)
 	def void insertUsageOfVariableCloud(Issue issue, IssueResolutionAcceptor acceptor) {
 		acceptor.accept(issue, "Use the variable in cloud",
 			"The variable is not used, please consider using the variable", null, [ element, context |
@@ -50,5 +50,14 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
                 context.xtextDocument.replace(node.endOffset,0,"\n\ttransformation " + issueText + " as x(a) \n" + "\t\tdata x \n" + "\t\t\tout x")
                 
 			])
+	}
+	
+	@Fix(UNSUPPORTED_LANGUAGE)
+	def void correctLanguage(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Use python as language", "Only python is support, please use python", null, [ element, context |
+			val deviceConf = element.eContainer.getContainerOfType(DeviceConf)
+			
+			context.xtextDocument.replace(issue.offset, deviceConf.language.name.length, "python")
+		])
 	}
 }

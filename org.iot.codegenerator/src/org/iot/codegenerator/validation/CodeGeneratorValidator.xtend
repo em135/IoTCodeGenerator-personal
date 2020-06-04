@@ -66,6 +66,7 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.AbstractBoard
 import java.util.Collection
+import static extension org.iot.codegenerator.validation.IssueCodesProvider.*
 
 /**
  * This class contains custom validation rules. 
@@ -74,9 +75,7 @@ import java.util.Collection
  */
 class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
-	public static val INCORRECT_INPUT_TYPE_PIN = "org.iot.codegenerator.IncorrectInputTypePin"
-	public static val INCORRECT_INPUT_TYPE_I2C = "org.iot.codegenerator.IncorrectInputTypeI2c"
-	public static val UNUSED_VARIABLE = "org.iot.codegenerator.UnusedVariable"
+
 
 	@Inject extension TypeChecker
 	@Inject extension IQualifiedNameProvider
@@ -185,12 +184,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	
 	@Check 
 	def validateLanguage(Language lang) {
-		var approved = Arrays.asList("python", "cplusplus")
-		if (!approved.contains(lang.name)) {
-			error('''no support for language «lang.name», only "python" and "cplusplus"''',
-				CodeGeneratorPackage.eINSTANCE.language_Name)
+		if (!lang.name.equals("python")) {
+			error('''no support for language «lang.name», only "python"''',
+				CodeGeneratorPackage.eINSTANCE.language_Name, UNSUPPORTED_LANGUAGE)
 		} else {
-			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
+			info('''generator supports "python"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
 	}
 
