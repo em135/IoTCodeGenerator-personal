@@ -121,7 +121,7 @@ class SensorGenerator {
 	
 	private dispatch def String compileOut(ChannelOut out, GeneratorEnvironment env) {
 		firstReferanceProcessed = false
-		'''«out.pipeline.compileInterceptors(env)»'''
+		'''«IF out.pipeline !== null»«out.pipeline.compileInterceptors(env)»«ENDIF»'''
 	}
 
 	private def String compileInterceptors(Pipeline pipeline, GeneratorEnvironment env) {

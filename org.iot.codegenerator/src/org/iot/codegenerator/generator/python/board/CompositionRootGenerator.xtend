@@ -149,10 +149,10 @@ class CompositionRootGenerator {
 	private def dispatch String compilePipelineProvider(ChannelOut out, GeneratorEnvironment env) {
 		env.useImport("pipeline", "Pipeline")
 		env.useImport("struct")
-
+		
 		val sink = '''
 		type('Sink', (object,), {
-			"handle": lambda data: «out.channel.name.asInstance».send(«out.pipeline.compileDataConversion»),
+			"handle": lambda data: «out.channel.name.asInstance».send(data),
 			"next": None
 		})'''
 
@@ -160,32 +160,9 @@ class CompositionRootGenerator {
 			def «out.providerName»(self):
 				«env.useChannel(out.channel).name.asInstance» = self.«out.channel.providerName»()
 				return Pipeline(
-					«out.pipeline.compilePipelineComposition(sink, env)»
+					«IF out.pipeline === null»«sink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
 				)
 		'''
-	}
-	
-	private def String compileDataConversion(Pipeline pipeline) {
-		switch pipeline.lastType {
-			case INT: {
-				'''struct.pack("i", data)'''
-			}
-			case DOUBLE: {
-				'''struct.pack("f", data)'''
-			}
-			case BOOLEAN: {
-				'''struct.pack("?", data)'''
-			}
-			case STRING: {
-				'''data.encode("utf-8")'''
-			}
-			case INVALID: {
-				throw new IllegalStateException("Encountered INVALID type in grammar during code generation")
-			}
-			case VOID: {
-				throw new IllegalStateException("Encountered VOID type in grammar during code generation")
-			}
-		}
 	}
 
 	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {
