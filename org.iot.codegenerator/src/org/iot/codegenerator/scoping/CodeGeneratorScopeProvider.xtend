@@ -49,6 +49,8 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 				context.transInIdScope
 			case codeGen.channelOut_Channel:
 				context.channelsScope
+			case codeGen.board_Inputs:
+				context.inChannelsScope
 			default:
 				super.getScope(context, reference)
 		}
@@ -99,11 +101,23 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 
 	def private IScope channelsScope(EObject context){
 		val visited = new HashSet<Board>
-		val nameChannel = new HashMap<String, Channel> // Change list of objects to sensor
+		val nameChannel = new HashMap<String, Channel> 
 		val board = context.eContainer.getContainerOfType(Board)
 		val channels = dfsChannels(board, visited, nameChannel)
 		if (!channels.empty){
 			return Scopes.scopeFor(channels)
+		}
+		return IScope.NULLSCOPE
+	}
+	
+	def private IScope inChannelsScope(EObject context){
+		val visited = new HashSet<Board>
+		val nameChannel = new HashMap<String, Channel> 
+		if (context instanceof Board){
+			val channels = dfsChannels(context, visited, nameChannel)
+			if (!channels.empty){
+				return Scopes.scopeFor(channels)
+			}
 		}
 		return IScope.NULLSCOPE
 	}

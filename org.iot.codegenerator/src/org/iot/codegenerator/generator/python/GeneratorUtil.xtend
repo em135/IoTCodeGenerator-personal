@@ -112,6 +112,25 @@ class GeneratorUtil {
 		}
 		return nameChannel.values
 	}
+	
+	static def inheritedInChannels(Board board){
+		val visited = new HashSet<Board>
+		val nameInChannel = new HashMap<String, Channel>
+		dfsInChannels(board, visited, nameInChannel)
+		
+	}
+	
+	static def private Collection<Channel> dfsInChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameInChannel){
+		visited.add(board)
+		board.inputs.forEach[channel | nameInChannel.put(channel.name, channel)]
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfsInChannels(abstractBoard, visited, nameInChannel)
+			}
+		}
+		return nameInChannel.values
+	}
+	
 	static def String executePipelineMethod(ExecutePipeline executePipeline){
 		val type = switch (executePipeline) {
 			Mean: "mean"

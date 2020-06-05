@@ -35,7 +35,7 @@ class Wifi(Communication):
         pass
 
     def send(self, data: bytes):
-        pass
+        print(data)
     
     def receive(self) -> bytes:
         pass

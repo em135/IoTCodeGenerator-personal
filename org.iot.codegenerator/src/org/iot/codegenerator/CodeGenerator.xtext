@@ -23,9 +23,9 @@ Channel:
 Board:
 	({ConcreteBoard} 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)? | 
 	 {AbstractBoard} 'abstract' 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?) (BEGIN
-		channels+=Channel* 
-		('in' input=[Channel])?
-		sensors+=Sensor*
+		(channels+=Channel)* 
+		('in' inputs+=[Channel])*
+		(sensors+=Sensor)*
 	 END)?
 ;
 

@@ -68,8 +68,8 @@ class BoardGenerator {
 				# def provide_«board.name.asModule»(self):
 				#     board = super().provide_«board.name.asModule»()
 				#     board.add_sensor(...)
-				«IF board.input !== null»
-					#     board.set_input_channel(...)
+				«IF !board.inputs.empty»
+					#     board.add_input_channel(...)
 				«ENDIF»
 				#     board.add_output_channel(...)
 				pass
