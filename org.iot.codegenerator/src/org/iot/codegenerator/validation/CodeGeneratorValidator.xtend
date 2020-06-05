@@ -67,6 +67,8 @@ import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.AbstractBoard
 import java.util.Collection
 import static extension org.iot.codegenerator.validation.IssueCodesProvider.*
+import org.iot.codegenerator.codeGenerator.SignalSampler
+import org.iot.codegenerator.codeGenerator.Sampler
 
 /**
  * This class contains custom validation rules. 
@@ -661,6 +663,39 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			if (externalBoardNames.containsKey(board.fullyQualifiedName)) {
 				error("The type " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
 			}
+	}
+	
+	static def inheritedInChannels(Board board){
+		val visited = new HashSet<Board>
+		val nameInChannel = new HashMap<String, Channel>
+		dfsInChannels(board, visited, nameInChannel)
+		
+	}
+	
+	static def private Collection<Channel> dfsInChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameInChannel){
+		visited.add(board)
+		board.inputs.forEach[channel | nameInChannel.put(channel.name, channel)]
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfsInChannels(abstractBoard, visited, nameInChannel)
+			}
+		}
+		return nameInChannel.values
+	}
+	
+	
+	@Check
+	def checkSampleSignal(ChannelOut channelOut){
+		val sampler = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.sampler
+		if (sampler !== null && sampler instanceof SignalSampler) {
+			val board = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.getContainerOfType(Board)
+			if (board !== null){
+				val channel = channelOut.channel
+				if (channel !== null && !board.inheritedInChannels.contains(channel)){
+					error("Channel " + channel.name + " must be an input channel when used with sample signal", channelOut, CodeGeneratorPackage.Literals.CHANNEL_OUT__CHANNEL)
+				}
+			}
+		}
 	}
 	
 }
