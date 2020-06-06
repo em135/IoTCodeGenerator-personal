@@ -24,6 +24,7 @@ import java.util.HashSet
 import org.iot.codegenerator.codeGenerator.AbstractBoard
 import java.util.Collection
 import org.iot.codegenerator.codeGenerator.Channel
+import org.iot.codegenerator.codeGenerator.ScreenOut
 
 class GeneratorUtil {
 	
@@ -142,5 +143,21 @@ class GeneratorUtil {
 		}
 		'''«type»'''
 	}
-
+	
+	static def usesOled(Board board) {
+		for (sensor : board.inheritedSensors){
+			for (data : sensor.datas){
+				if (data instanceof SensorData){
+					for (output: data.outputs){
+						if (output instanceof ScreenOut){
+							return true
+						}
+					}
+				}
+			}
+		}
+		return false
+	}
+	
+	
 }

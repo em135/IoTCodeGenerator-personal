@@ -43,7 +43,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 			case codeGen.reference_Variable:
 				context.variableScope
 			case codeGen.transformationOut_Source,
-			case codeGen.channelOut_Source:
+			case codeGen.sensorDataOut_Source:
 				context.variablesScope
 			case codeGen.transformation_Provider:
 				context.transInIdScope

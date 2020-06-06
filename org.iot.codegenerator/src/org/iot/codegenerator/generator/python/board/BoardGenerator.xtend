@@ -6,6 +6,7 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.ScreenOut
 
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
+import org.iot.codegenerator.codeGenerator.SensorData
 
 class BoardGenerator {
 	@Inject CompositionRootGenerator compositionRootGenerator
@@ -53,9 +54,10 @@ class BoardGenerator {
 		"/libfiles/by_window_utils.py".compileAsLibfile()
 		"/libfiles/thread.py".compileAsLibfile()
 		
-		if (board.usesOled) { // todo inheritance
+		if (board.usesOled) {
 			"/libfiles/ssd1306.py".compileAsLibfile()
-			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
+//			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
+			"/libfiles/oled_provider.py".compileAsLibfile()
 		}
 	}
 
@@ -64,10 +66,6 @@ class BoardGenerator {
 			val fileName = BoardGenerator._fsa.getURI(path).deresolve(BoardGenerator._fsa.getURI("libfiles/"))
 			BoardGenerator._fsa.generateFile('''board/«fileName.path»''', stream)
 		}
-	}
-	
-	def usesOled(Board board) {
-		return !board.eContents.filter(ScreenOut).empty
 	}
 
 	def String compileMain(Board board) {

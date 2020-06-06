@@ -68,7 +68,7 @@ SensorDataOut:
 ;
 
 ScreenOut:
-	'out' 'oled' prints+=Expression
+	'out' 'oled' source=[Variables] (pipeline=Pipeline? | '(' variables+=Variable (',' variables += Variable)* ')')
 ;
 
 ChannelOut:

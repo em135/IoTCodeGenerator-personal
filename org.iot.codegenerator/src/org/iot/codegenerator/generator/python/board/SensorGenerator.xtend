@@ -17,6 +17,7 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import com.google.inject.Inject
 import org.iot.codegenerator.generator.python.ExpressionGenerator
+import org.iot.codegenerator.codeGenerator.SensorDataOut
 
 class SensorGenerator {
 	@Inject extension ExpressionGenerator
@@ -179,7 +180,7 @@ class SensorGenerator {
 	}
 
 	private def Variables getSource(Pipeline pipeline) {
-		val channelContainer = pipeline.getContainerOfType(ChannelOut)
+		val channelContainer = pipeline.getContainerOfType(SensorDataOut)
 		if (channelContainer === null) {
 			return pipeline.getContainerOfType(TransformationOut).source
 		}
@@ -187,6 +188,7 @@ class SensorGenerator {
 	}
 	
 	private dispatch def String compileOut(ScreenOut out, GeneratorEnvironment env) {
-		'''# TODO: Write to OLED'''
+		firstReferanceProcessed = false
+		'''«IF out.pipeline !== null»«out.pipeline.compileInterceptors(env)»«ENDIF»'''
 	}
 }

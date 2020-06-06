@@ -45,10 +45,11 @@ class CompositionRootGenerator {
 				«board.compileChannelProviders(env)»
 				«compileMakeChannel(env)»
 				«board.computeSensorProviders(env)»
-				  
+
 
 		'''
 	}
+
 
 	private def String compileConstructor(Board board, GeneratorEnvironment env) {
 		env.useImport("ujson")
@@ -57,12 +58,20 @@ class CompositionRootGenerator {
 			def __init__(self):
 				«FOR channel : board.inheritedChannels»
 					self.«channel.name.asInstance» = None
+					«board.compileOledProvider(env)»
 				«ENDFOR»
 				
 				with open("config.json", "r") as _conf_file:
 					self.configuration = ujson.loads("".join(_conf_file.readlines()))
 			
 		'''
+	}
+	
+	private def compileOledProvider(Board board, GeneratorEnvironment env){
+		env.useImport("oled_provider", "OledWrapper")
+		if (board.usesOled){
+			'''self._oled = OledWrapper()'''
+		}
 	}
 
 	private def String compileBoardProvider(Board board, GeneratorEnvironment env) {
@@ -176,10 +185,19 @@ class CompositionRootGenerator {
 	}
 
 	private def dispatch String compilePipelineProvider(ScreenOut out, GeneratorEnvironment env) {
+		env.useImport("pipeline", "Pipeline")
+		
+		val sink = '''
+		type('Sink', (object,), {
+			"handle": lambda data: self._oled.send(data),
+			"next": None
+		})'''
+
 		'''
 			def «out.providerName»(self):
-				# TODO: Unsupported
-				return None
+				return Pipeline(
+					«IF out.pipeline === null»«sink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
+				)
 		'''
 	}
 

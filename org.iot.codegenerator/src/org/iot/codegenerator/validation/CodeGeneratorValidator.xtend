@@ -378,7 +378,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
 					if (firstPipelineType !== currentPipelineType){
 						error('''expected «firstPipelineType» got «currentPipelineType»''',
-							channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
+							channelOut, CodeGeneratorPackage.eINSTANCE.sensorDataOut_Pipeline
 						)
 					}
 				}
@@ -613,15 +613,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
-	
-//	def checkUniuqeSuperBoards(AbstractBoard abstractBoard){
-//		val board = abstractBoard.getContainerOfType(Board)
-//		for (AbstractBoard ab : board.superTypes){
-//			if (abstractBoard.name.equals(ab.name)){
-//				error('''duplicate «abstractBoard.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
-//			}
-//		}
-//	}
 	
 	@Check(CheckType.NORMAL)
 	def checkUniqueBoardNames(Board board){
