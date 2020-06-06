@@ -14,9 +14,9 @@ class ESP32 {
 	}
 	
 	Map<String, List<String>> sensorVariables = #{
-		"light" -> Arrays.asList("lux"),
-		"thermometer" -> Arrays.asList("tmp", "hum"),
-		"motion" -> Arrays.asList("acX", "acY", "acZ", "tmp", "gyX", "gyY", "gyZ")
+		"light" -> newArrayList("lux"),
+		"thermometer" -> newArrayList("tmp", "hum"),
+		"motion" -> newArrayList("acX", "acY", "acZ", "tmp", "gyX", "gyY", "gyZ")
 	}
 
 	def getSensors() {

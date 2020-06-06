@@ -59,11 +59,13 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	def private IScope getVariableScope(EObject context) {
 		val mapContainer = context.getContainerOfType(Pipeline)?.eContainer()?.getContainerOfType(ModifyPipeline)
 		if (mapContainer !== null) {
-			Scopes.scopeFor((Collections.singleton(mapContainer.output)))
-		} else {
-			val providerContainer = context.eContainer.getContainerOfType(Provider)
-			Scopes.scopeFor(providerContainer.variables.ids)
+			return Scopes.scopeFor((Collections.singleton(mapContainer.output)))
+		} 
+		val providerContainer = context.eContainer.getContainerOfType(Provider)
+		if (providerContainer !== null && providerContainer.variables !== null){
+			return Scopes.scopeFor(providerContainer.variables.ids)
 		}
+		return IScope.NULLSCOPE
 	}
 	
 	def private IScope getVariablesScope(EObject context) {
