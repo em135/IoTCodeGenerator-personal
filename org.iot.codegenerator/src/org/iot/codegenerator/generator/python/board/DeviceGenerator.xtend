@@ -36,7 +36,7 @@ class DeviceGenerator {
 			def __init__(self):
 				self._sensors = {}
 				self._output_channels = []
-				«IF !board.inputs.empty»
+				«IF !board.inheritedInChannels.empty»
 					self._input_channels = []
 					self._in_thread = «env.useImport("thread")».Thread(self._input_loop, "ThreadInput")
 				«ENDIF»
@@ -52,7 +52,7 @@ class DeviceGenerator {
 			def add_output_channel(self, channel):
 				self._output_channels.append(channel)
 			
-			«IF !board.inputs.empty»
+			«IF !board.inheritedInChannels.empty»
 				def add_input_channel(self, channel):
 					self._input_channels.append(channel)
 				
@@ -62,7 +62,7 @@ class DeviceGenerator {
 
 	private def String compileInputLoop(Board board, GeneratorEnvironment env) {
 		'''
-			«IF !board.inputs.empty»
+			«IF !board.inheritedInChannels.empty»
 				def _input_loop(self, thread: thread.Thread):
 					while thread.active:
 						for input_channel in self._input_channels:
@@ -81,12 +81,12 @@ class DeviceGenerator {
 
 		'''
 			def run(self):
-				«IF !board.inputs.empty»
+				«IF !board.inheritedInChannels.empty»
 					self._in_thread.start()
 					
 				«ENDIF»
 				«env.useImport("thread")».join([
-					«IF !board.inputs.empty»
+					«IF !board.inheritedInChannels.empty»
 						self._in_thread«IF !frequencySensors.empty»,«ENDIF»
 					«ENDIF»
 					«FOR sensor : frequencySensors SEPARATOR ","»
