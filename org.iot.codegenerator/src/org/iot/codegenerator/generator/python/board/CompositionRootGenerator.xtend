@@ -18,8 +18,6 @@ import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.OnbSensor
 
 class CompositionRootGenerator {
-	//Changed with sensors
-	@Inject extension org.iot.codegenerator.typing.TypeChecker
 	
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()
@@ -36,7 +34,6 @@ class CompositionRootGenerator {
 		val sensorProviders = board.compileSensorProviders(env)
 		val pipelineProviders = board.compilePipelineProviders(env)
 		val boardProvider = board.compileBoardProvider(env)
-		env.useImport("sensor_provider", "default_wrapper")
 
 		'''
 			class CompositionRoot:
@@ -48,9 +45,8 @@ class CompositionRootGenerator {
 				«board.compileChannelProviders(env)»
 				«compileMakeChannel(env)»
 				«board.computeSensorProviders(env)»
-				
-				def provide_driver_default(self):
-					return default_wrapper()
+				  
+
 		'''
 	}
 
@@ -83,6 +79,7 @@ class CompositionRootGenerator {
 					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
 				return «board.name.asInstance»
+				
 		'''
 	}
 	
@@ -94,7 +91,7 @@ class CompositionRootGenerator {
 		'''
 			«FOR sensor : board.inheritedSensors» 
 				def «sensor.providerName»(self):
-					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»«IF sensor instanceof OnbSensor»(self.provide_driver_«sensor.sensortype»())«ELSE»(self.provide_driver_default())«ENDIF»
+					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»(self.provide_driver_«sensor.sensortype»())
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
 							«sensor.sensortype.asInstance».add_pipeline(«providerPipelineName(data, out)»())
@@ -109,7 +106,7 @@ class CompositionRootGenerator {
 	private def String computeSensorProviders(Board board, GeneratorEnvironment env){
 		'''
 			«FOR sensor : board.inheritedSensors»
-				«IF sensor instanceof OnbSensor»«sensor.compileSensorProvider(env)»«ENDIF»
+				«sensor.compileSensorProvider(env)»
 			«ENDFOR»
 		'''
 	}

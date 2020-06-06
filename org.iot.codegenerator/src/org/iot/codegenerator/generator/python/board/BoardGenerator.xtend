@@ -8,11 +8,11 @@ import org.iot.codegenerator.codeGenerator.ScreenOut
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class BoardGenerator {
-	// Changed with sensors
 	@Inject CompositionRootGenerator compositionRootGenerator
 	@Inject SensorProviderGenerator sensorProviderGenerator
 	@Inject DeviceGenerator deviceGenerator
 	@Inject SensorGenerator sensorGenerator 
+	@Inject ExternalSensorDriverGenerator externalSensorDriverGenerator
 	
 	static IFileSystemAccess2 _fsa
 	
@@ -21,24 +21,39 @@ class BoardGenerator {
 		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
 		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(board))
 		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
-
 		if (fsa.isFile("board/main.py")) {
 			val mainContents = fsa.readTextFile("board/main.py")
 			fsa.generateFile('''board/main.py''', mainContents)
 		} else {
 			fsa.generateFile('''board/main.py''', compileMain(board))
 		}
-
-		board.inheritedSensors.forEach [
-			fsa.generateFile('''board/«sensortype».py''', sensorGenerator.compile(it))
-		]
+		
+		for (sensor : board.inheritedSensors){
+			val sensorType = sensor.sensortype
+			val sensorFileName = '''board/«sensorType»'''
+			switch (sensor.sensortype) {
+				case "thermometer", case "motion", case "light": {
+					fsa.generateFile('''«sensorFileName».py''', sensorGenerator.compile(sensor))
+				}
+				default: {
+					val driverFile = '''«sensorFileName»_driver.py'''
+					fsa.generateFile('''«sensorFileName».py''', sensorGenerator.compile(sensor))
+					if (fsa.isFile(driverFile)) {
+						val driverContents = fsa.readTextFile(driverFile)
+						fsa.generateFile(driverFile, driverContents)
+					} else {					
+						fsa.generateFile(driverFile, externalSensorDriverGenerator.compile(sensor))
+					}
+				}
+			}
+		}
 
 		"/libfiles/communication.py".compileAsLibfile()
 		"/libfiles/pipeline.py".compileAsLibfile()
 		"/libfiles/by_window_utils.py".compileAsLibfile()
 		"/libfiles/thread.py".compileAsLibfile()
 		
-		if (board.usesOled) {
+		if (board.usesOled) { // todo inheritance
 			"/libfiles/ssd1306.py".compileAsLibfile()
 			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
 		}
