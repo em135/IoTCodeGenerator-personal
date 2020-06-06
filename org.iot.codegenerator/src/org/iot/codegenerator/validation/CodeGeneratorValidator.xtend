@@ -6,7 +6,7 @@ package org.iot.codegenerator.validation
 import com.google.common.collect.Sets
 import com.google.inject.Inject
 import java.util.ArrayList
-import java.util.Arrays
+import java.util.Collection
 import java.util.HashMap
 import java.util.HashSet
 import java.util.List
@@ -20,8 +20,10 @@ import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
+import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.ConcreteBoard
@@ -51,6 +53,7 @@ import org.iot.codegenerator.codeGenerator.Provider
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.codeGenerator.SignalSampler
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
@@ -62,13 +65,9 @@ import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
+import static org.iot.codegenerator.validation.IssueCodesProvider.*
+import static extension org.iot.codegenerator.util.InheritanceUil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.Channel
-import org.iot.codegenerator.codeGenerator.AbstractBoard
-import java.util.Collection
-import static extension org.iot.codegenerator.validation.IssueCodesProvider.*
-import org.iot.codegenerator.codeGenerator.SignalSampler
-import org.iot.codegenerator.codeGenerator.Sampler
 
 /**
  * This class contains custom validation rules. 
@@ -76,8 +75,6 @@ import org.iot.codegenerator.codeGenerator.Sampler
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
-
-
 
 	@Inject extension TypeChecker
 	@Inject extension IQualifiedNameProvider
@@ -118,7 +115,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	
 	@Check
-	def checkChannels (Channel channel){
+	def checkForDuplicateChannels (Channel channel){
 		val board = channel.getContainerOfType(Board)
 		for (Channel c: board.channels.filter[it !== channel]){
 			if (channel.name.equals(c.name)){
@@ -126,8 +123,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			}
 		}
 	}
-	
-
 	
 	@Check
 	def validateConcreteBoard(DeviceConf configuration){
@@ -154,9 +149,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				error('''Board does not support sensor: «sensor.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			} else if (parameterCount < sensor.variables.ids.length) {
 				error('''Maximum number of output variables for sensor type «sensor.sensortype» is «parameterCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (parameterCount > sensor.variables.ids.length) {
-				info('''«sensor.sensortype» supports up to «parameterCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			}
+			} 
 		}
 	}
 	
@@ -176,7 +169,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 					val legalVariables = board.getSensorVariables(parent.sensortype)
 					for (Variable variable : variables.ids){
 						if (!(legalVariables.contains(variable.name))){
-							error('''Unsupported variable «variable.name». The «parent.sensortype» sensor supports the variables «String.join(", ", legalVariables)»''',
+							error('''Unsupported variable «variable.name». The «parent.sensortype» sensor supports the variables: «String.join(", ", legalVariables)»''',
 								variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 						}
 					}
@@ -192,7 +185,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		} else {
 			info('''generator supports "python"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
-	}
+	} 
 
 
 	def checkNoDuplicateDataName(List<Data> datas) {
@@ -240,14 +233,15 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		val deviceConf = data.eContainer.getContainerOfType(DeviceConf)
 		val fog = deviceConf.fog.last
 		val cloud = deviceConf.cloud.last
-		val list = Stream.concat(fog.transformations.stream(), cloud.transformations.stream()).collect(
-			Collectors.toList());
-
+		val list = Stream.concat(fog.transformations.stream(), cloud.transformations.stream()).collect(Collectors.toList());
 		if (!list.exists[it.provider == data]) {
 			warning('''Unused variable''', data, CodeGeneratorPackage.Literals.DATA__NAME, UNUSED_VARIABLE)
-			
 		} 
-
+	}
+	
+	@Check
+	def chackUnusedChannels(){
+		
 	}
 
 	@Check // TODO
@@ -370,6 +364,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	} 
 	
+	//TODO SENSORDATAOUT
 	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
 		if (channelOuts.size !==0){
 			val firstPipelineType = channelOuts.get(0).pipeline.lastType

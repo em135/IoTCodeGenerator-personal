@@ -3,7 +3,6 @@ package org.iot.codegenerator.typing
 import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Reference
 import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.typing.TypeChecker.Type
 
 import static extension org.eclipse.xtext.EcoreUtil2.*

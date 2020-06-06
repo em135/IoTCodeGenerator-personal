@@ -3,31 +3,29 @@
  */
 package org.iot.codegenerator.scoping
 
+import java.util.Collection
 import java.util.Collections
+import java.util.HashMap
+import java.util.HashSet
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
+import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.Cloud
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Fog
 import org.iot.codegenerator.codeGenerator.ModifyPipeline
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Provider
+import org.iot.codegenerator.codeGenerator.Sensor
 
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.DeviceConf
-import org.iot.codegenerator.codeGenerator.Channel
-import java.util.HashSet
-import java.util.HashMap
-import java.util.Collection
-import org.iot.codegenerator.codeGenerator.AbstractBoard
-import org.iot.codegenerator.codeGenerator.ConcreteBoard
-import org.eclipse.emf.ecore.EClassifier
-import org.iot.codegenerator.codeGenerator.Sensor
 
 /**
  * This class contains custom scoping description.

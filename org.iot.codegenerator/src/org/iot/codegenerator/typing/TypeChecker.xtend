@@ -1,26 +1,22 @@
 package org.iot.codegenerator.typing
 
+import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.BooleanLiteral
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Expression
+import org.iot.codegenerator.codeGenerator.Filter
+import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.NumberLiteral
+import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Reference
 import org.iot.codegenerator.codeGenerator.StringLiteral
-import org.eclipse.xtext.util.OnChangeEvictingCache
-import com.google.inject.Inject
-import org.iot.codegenerator.codeGenerator.Pipeline
-import org.iot.codegenerator.codeGenerator.Map
-import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Window
-import org.iot.codegenerator.codeGenerator.ModifyPipeline
-import org.iot.codegenerator.codeGenerator.Filter
 
 class TypeChecker {
 

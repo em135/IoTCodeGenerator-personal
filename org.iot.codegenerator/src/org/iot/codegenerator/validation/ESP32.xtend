@@ -1,8 +1,7 @@
 package org.iot.codegenerator.validation
 
-import java.util.Map
 import java.util.List
-import java.util.Arrays
+import java.util.Map
 
 class ESP32 {
 

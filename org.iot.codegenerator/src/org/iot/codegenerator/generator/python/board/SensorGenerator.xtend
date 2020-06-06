@@ -13,7 +13,7 @@ import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import com.google.inject.Inject
 import org.iot.codegenerator.generator.python.ExpressionGenerator

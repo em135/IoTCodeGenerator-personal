@@ -21,7 +21,7 @@ import org.iot.codegenerator.codeGenerator.Reference
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.StringLiteral
 import org.iot.codegenerator.codeGenerator.Unequal
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import com.google.inject.Inject
 import org.iot.codegenerator.typing.TypeChecker

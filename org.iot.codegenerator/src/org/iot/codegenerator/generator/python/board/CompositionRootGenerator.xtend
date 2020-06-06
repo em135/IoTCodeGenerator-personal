@@ -6,16 +6,14 @@ import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
-import com.google.inject.Inject
-import org.iot.codegenerator.codeGenerator.OnbSensor
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.InheritanceUil.*
 
 class CompositionRootGenerator {
 	

@@ -1,7 +1,7 @@
 package org.iot.codegenerator.generator.python.board
 
 import org.iot.codegenerator.codeGenerator.Sensor
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
 
 class ExternalSensorDriverGenerator {
 		

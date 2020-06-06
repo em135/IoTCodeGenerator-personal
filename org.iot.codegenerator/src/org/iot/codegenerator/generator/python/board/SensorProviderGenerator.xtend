@@ -4,7 +4,8 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.InheritanceUil.*
 
 class SensorProviderGenerator { 
 	

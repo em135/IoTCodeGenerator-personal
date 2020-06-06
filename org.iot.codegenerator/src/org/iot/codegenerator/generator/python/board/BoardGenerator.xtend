@@ -3,10 +3,9 @@ package org.iot.codegenerator.generator.python.board
 import com.google.inject.Inject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.iot.codegenerator.codeGenerator.Board
-import org.iot.codegenerator.codeGenerator.ScreenOut
 
-import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
-import org.iot.codegenerator.codeGenerator.SensorData
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
+import static extension org.iot.codegenerator.util.InheritanceUil.*
 
 class BoardGenerator {
 	@Inject CompositionRootGenerator compositionRootGenerator
