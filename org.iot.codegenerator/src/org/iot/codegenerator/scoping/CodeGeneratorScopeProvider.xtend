@@ -26,6 +26,9 @@ import org.iot.codegenerator.codeGenerator.Sensor
 
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.ChannelOut
+import java.util.ArrayList
+import java.util.List
 
 /**
  * This class contains custom scoping description.
@@ -45,10 +48,9 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 				context.variablesScope
 			case codeGen.transformation_Provider:
 				context.transInIdScope
-			case codeGen.channelOut_Channel:
-				context.channelsScope
+			case codeGen.channelOut_Channel,
 			case codeGen.board_Inputs:
-				context.inChannelsScope
+				context.channelsScope
 			default:
 				super.getScope(context, reference)
 		}
@@ -99,29 +101,27 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 
 	def private IScope channelsScope(EObject context){
-		val visited = new HashSet<Board>
-		val nameChannel = new HashMap<String, Channel> 
+		if (context instanceof Board){
+			return context.inChannelsScope
+		}
 		val board = context.eContainer.getContainerOfType(Board)
-		val channels = dfsChannels(board, visited, nameChannel)
-		if (!channels.empty){
-			return Scopes.scopeFor(channels)
+		if (board !== null){
+			return board.inChannelsScope
 		}
 		return IScope.NULLSCOPE
 	}
 	
-	def private IScope inChannelsScope(EObject context){
+	def private IScope inChannelsScope(Board board){
 		val visited = new HashSet<Board>
 		val nameChannel = new HashMap<String, Channel> 
-		if (context instanceof Board){
-			val channels = dfsChannels(context, visited, nameChannel)
-			if (!channels.empty){
-				return Scopes.scopeFor(channels)
-			}
+		val channels = dfsChannels(board, visited, nameChannel)
+		if (!channels.empty){
+			return Scopes.scopeFor(channels)			
 		}
 		return IScope.NULLSCOPE
 	}
 		
-	def private Collection<Channel> dfsChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameChannel){
+	def private ArrayList<Channel> dfsChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameChannel){
 		visited.add(board)
 		board.channels.forEach[channel | nameChannel.put(channel.name, channel)]
 		for(AbstractBoard abstractBoard: board.superTypes){
@@ -129,7 +129,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 				dfsChannels(abstractBoard, visited, nameChannel)
 			}
 		}
-		return nameChannel.values
+		return newArrayList(nameChannel.values)
 	}
 	
 		
