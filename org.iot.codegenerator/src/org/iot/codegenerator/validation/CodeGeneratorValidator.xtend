@@ -332,30 +332,27 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	
 	@Check
 	def validatePipelineOutputs(Data data){
-		switch (data) {
-			case TransformationData: {
-				var transformationOuts = new ArrayList<TransformationOut>
-				val transformationDataOutputs = (data as TransformationData).outputs
-			
-				for (TransformationOut transformationOut : transformationDataOutputs) {
-					transformationOuts.add(transformationOut)
-					checkByWindowNotUsedOnTuple(transformationOut.pipeline)
-				}
-				checkSameTypeOfTransformationOutPipelines(transformationOuts)	
+		if (data instanceof TransformationData) {
+			var transformationOuts = new ArrayList<TransformationOut>
+			val transformationDataOutputs = (data as TransformationData).outputs
+		
+			for (TransformationOut transformationOut : transformationDataOutputs) {
+				transformationOuts.add(transformationOut)
+				checkByWindowNotUsedOnTuple(transformationOut.pipeline)
 			}
-			case SensorData: {
-				var channelOuts = new ArrayList<ChannelOut>
-				val sensorDataOutputs = (data as SensorData).outputs
-			
-				for(SensorDataOut sensorDataOut : sensorDataOutputs) {
-					if (sensorDataOut instanceof ChannelOut) {
-						val channelOut = sensorDataOut as ChannelOut
-						channelOuts.add(channelOut)
-						checkByWindowNotUsedOnTuple(channelOut.pipeline)
-					}
+			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
+		} else if (data instanceof SensorData) {
+			var channelOuts = new ArrayList<ChannelOut>
+			val sensorDataOutputs = (data as SensorData).outputs
+		
+			for(SensorDataOut sensorDataOut : sensorDataOutputs) {
+				if (sensorDataOut instanceof ChannelOut) {
+					val channelOut = sensorDataOut as ChannelOut
+					channelOuts.add(channelOut)
+					checkByWindowNotUsedOnTuple(channelOut.pipeline)
 				}
-				checkSameTypeOfChannelOutPipelines(channelOuts)
 			}
+			checkSameTypeOfChannelOutPipelines(channelOuts)
 		}
 	}
 	
