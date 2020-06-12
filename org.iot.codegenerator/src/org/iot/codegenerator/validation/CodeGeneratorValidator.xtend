@@ -10,8 +10,6 @@ import java.util.HashMap
 import java.util.HashSet
 import java.util.List
 import java.util.Set
-import java.util.stream.Collectors
-import java.util.stream.Stream
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.naming.IQualifiedNameProvider
@@ -93,10 +91,10 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateConcreteBoardSize(DeviceConf configuration){
 		val concreteBoards = configuration.board.filter(board | board instanceof ConcreteBoard)
 		if (concreteBoards.size>1){
-			error('''There must max be 1 concrete board''', concreteBoards.get(0), CodeGeneratorPackage.eINSTANCE.board_Name)
+			error('''There must max be 1 concrete board''', concreteBoards.last, CodeGeneratorPackage.eINSTANCE.board_Name)
 		}
 	}
-	
+
 	@Check
 	def checkConcreteBoardCloud (ConcreteBoard concreteBoard){
 		val deviceConf = concreteBoard.eContainer?.getContainerOfType(DeviceConf)
@@ -118,7 +116,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		val b = new ESP32()
 		info('''«board.name» supports the following sensors: «String.join(", ", b.sensors)»''', CodeGeneratorPackage.eINSTANCE.board_Name)
 	}
-	
 	
 	@Check
 	def checkForDuplicateChannels (Channel channel){
@@ -146,13 +143,9 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateOnboardSensor(Sensor sensor) {
 		if (sensor instanceof OnbSensor){
 			val board = new ESP32()
-			sensor.variables.ids
 			val parameterCount = board.getParameterCount(sensor.sensortype)
-
 			if (parameterCount == -1) {
 				error('''Board does not support sensor: «sensor.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (parameterCount < sensor.variables.ids.length) {
-				error('''Maximum number of output variables for sensor type «sensor.sensortype» is «parameterCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			} 
 		}
 	}
@@ -248,24 +241,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check
-	def validateUsageOfdataDeclaration(SensorData data) {
-		val deviceConf = data.eContainer.getContainerOfType(DeviceConf)
-		val fog = deviceConf.fog.last
-		val cloud = deviceConf.cloud.last
-		val list = Stream.concat(fog.transformations.stream(), cloud.transformations.stream()).collect(Collectors.toList());
-		if (!list.exists[it.provider == data]) {
-			warning('''Unused variable''', data, CodeGeneratorPackage.Literals.DATA__NAME, UNUSED_VARIABLE)
-		} 
-	}
-	
-	@Check
-	def chackUnusedChannels(){
-		
-	}
-		
-
-	
-	@Check
 	def checkUniqueDataNames(Data data){
 		val sensor = data.getContainerOfType(Sensor)
 		val board = sensor.getContainerOfType(Board)
@@ -294,7 +269,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
-
 		
 	def checkNoDuplicateVariableNamesInStatement(List<Variable> variables) {
 		val variableNameValues = new HashMap<String, Set<Variable>>
@@ -316,7 +290,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			}
 		}
 	}
-	
 	
 	@Check
 	def checkWindowWidth(Window window){
@@ -387,15 +360,17 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
-		if (transformationOuts.size >1){
+		if (transformationOuts.size !==0){
 			val firstPipelineType = transformationOuts.get(0).pipeline.lastType
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
-				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
-						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
-					)
-				}
+				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
+					if (firstPipelineType !== currentPipelineType){
+						error('''expected «firstPipelineType» got «currentPipelineType»''',
+							transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
+						)
+					}
+				} 
 			}
 		}
 	} 
