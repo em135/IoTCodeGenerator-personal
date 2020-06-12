@@ -13,7 +13,7 @@ import org.iot.codegenerator.generator.python.GeneratorEnvironment
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUil.*
+import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class CompositionRootGenerator {
 	

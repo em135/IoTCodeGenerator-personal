@@ -45,19 +45,19 @@ class TypeChecker {
 		}
 	}
 
-	def dispatch Type type(StringLiteral str) {
+	def dispatch Type type(StringLiteral _) {
 		Type.STRING
 	}
 
-	def dispatch Type type(BooleanLiteral bool) {
+	def dispatch Type type(BooleanLiteral _) {
 		Type.BOOLEAN
 	}
 
-	def dispatch Type type(Expression expression) {
+	def dispatch Type type(Expression _) {
 		Type.BOOLEAN
 	}
 	
-	def dispatch Type type(Void vd) {
+	def dispatch Type type(Void _) {
 		Type.VOID
 	}
 	

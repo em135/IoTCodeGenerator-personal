@@ -3,6 +3,7 @@ package org.iot.codegenerator.validation
 import java.util.List
 import java.util.Map
 
+// This class should be in the util folder, but a bug is preventing this
 class ESP32 {
 
 	// The number of values read from the sensors

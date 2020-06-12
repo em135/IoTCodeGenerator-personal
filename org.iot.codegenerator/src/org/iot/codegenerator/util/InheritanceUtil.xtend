@@ -6,25 +6,26 @@ import java.util.HashSet
 import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.ScreenOut
 
-class InheritanceUil {
+class InheritanceUtil {
 	
 	static def inheritedSensors(Board board){
 		val visited = new HashSet<Board>
 		val nameSensor = new HashMap<String, Sensor> // Change list of objects to sensor
-		dfs(board, visited, nameSensor)
+		dfsSensors(board, visited, nameSensor)
 	}
 	
-	static def Collection<Sensor> dfs(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){ // change list of objects to sensor
+	static def Collection<Sensor> dfsSensors(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){ // change list of objects to sensor
 		visited.add(board)
 		//TODO does it have to be a map? (can it be a set?)
 		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)] // change list of object to snesor
 		for(AbstractBoard abstractBoard: board.superTypes){
 			if (!(visited.contains(abstractBoard))){
-				dfs(abstractBoard, visited, nameSensor)
+				dfsSensors(abstractBoard, visited, nameSensor)
 			}
 			}
 			return nameSensor.values
@@ -66,6 +67,22 @@ class InheritanceUil {
 		return nameInChannel.values
 	}
 	
+	static def inheritedData(Board board){
+		dfsData(board, new HashSet<Board>, new HashMap<String, Data>)
+	}
+	
+	static def private Collection<Data> dfsData(Board board, HashSet<Board> visited, HashMap<String, Data> nameData){
+		visited.add(board)
+		board.sensors.forEach[sensor | sensor.datas.forEach[data | nameData.put(data.name, data)]] 
+		for(AbstractBoard abstractBoard: board.superTypes){
+			if (!(visited.contains(abstractBoard))){
+				dfsData(abstractBoard, visited, nameData)
+			}
+		}
+		return newArrayList(nameData.values)
+	}
+	
+	
 	static def usesOled(Board board) {
 		for (sensor : board.inheritedSensors){
 			for (data : sensor.datas){
@@ -78,6 +95,34 @@ class InheritanceUil {
 				}
 			}
 		}
+		return false
+	}
+	
+	static def boolean hasSensor(Board current){
+		if (current.sensors.size !== 0){
+			return true
+		}
+		
+		for(Board board : current.superTypes){
+			if (board.hasSensor){
+				return true
+			}
+		}
+		return false
+	}
+	
+	static def boolean hasCycle(Board current, HashSet<Board> visited){
+		if (visited.contains (current)){
+			return true
+		}
+		visited.add(current)
+	
+		for (Board board: current.superTypes){
+			if (board.name === current.name || hasCycle(board, visited)){
+				return true
+			}
+		}
+		visited.remove(current)
 		return false
 	}
 }

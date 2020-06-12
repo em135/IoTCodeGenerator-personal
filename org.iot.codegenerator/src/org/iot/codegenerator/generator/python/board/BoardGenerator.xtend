@@ -5,7 +5,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.iot.codegenerator.codeGenerator.Board
 
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUil.*
+import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class BoardGenerator {
 	@Inject CompositionRootGenerator compositionRootGenerator

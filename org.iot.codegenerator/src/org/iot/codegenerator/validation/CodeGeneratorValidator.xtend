@@ -6,7 +6,6 @@ package org.iot.codegenerator.validation
 import com.google.common.collect.Sets
 import com.google.inject.Inject
 import java.util.ArrayList
-import java.util.Collection
 import java.util.HashMap
 import java.util.HashSet
 import java.util.List
@@ -20,7 +19,6 @@ import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
-import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
@@ -54,7 +52,6 @@ import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.SignalSampler
-import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
 import org.iot.codegenerator.codeGenerator.TuplePipeline
@@ -66,8 +63,9 @@ import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static org.iot.codegenerator.validation.IssueCodesProvider.*
-import static extension org.iot.codegenerator.util.InheritanceUil.*
+
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 /**
  * This class contains custom validation rules. 
@@ -80,7 +78,25 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Inject IQualifiedNameProvider qualifiedNameProvider
 	@Inject IContainer.Manager containerManager
 	@Inject IResourceDescriptions resourceDescriptions
-
+	
+	@Check 
+	def validateLanguage(Language lang) {
+		if (!lang.name.equals("python")) {
+			error('''no support for language «lang.name», only "python"''',
+				CodeGeneratorPackage.eINSTANCE.language_Name, UNSUPPORTED_LANGUAGE)
+		} else {
+			info('''generator supports "python"''', CodeGeneratorPackage.eINSTANCE.language_Name)
+		}
+	} 
+	
+	@Check
+	def validateConcreteBoardSize(DeviceConf configuration){
+		val concreteBoards = configuration.board.filter(board | board instanceof ConcreteBoard)
+		if (concreteBoards.size>1){
+			error('''There must max be 1 concrete board''', concreteBoards.get(0), CodeGeneratorPackage.eINSTANCE.board_Name)
+		}
+	}
+	
 	@Check
 	def checkConcreteBoardCloud (ConcreteBoard concreteBoard){
 		val deviceConf = concreteBoard.eContainer?.getContainerOfType(DeviceConf)
@@ -97,7 +113,12 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-
+	@Check
+	def boardSensorInfo(Board board) {
+		val b = new ESP32()
+		info('''«board.name» supports the following sensors: «String.join(", ", b.sensors)»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+	}
+	
 	
 	@Check
 	def checkForDuplicateChannels (Channel channel){
@@ -109,20 +130,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	@Check
-	def validateConcreteBoard(DeviceConf configuration){
-		val concreteBoards = configuration.board.filter(board | board instanceof ConcreteBoard)
-		if (concreteBoards.size>1){
-			error('''There must max be 1 concrete board''', concreteBoards.get(0), CodeGeneratorPackage.eINSTANCE.board_Name)
-		}
-	}
-		
-	@Check
-	def validateBoard(Board board) {
-		val b = new ESP32()
-		info('''«board.name» supports the following sensors: «String.join(", ", b.sensors)»''', CodeGeneratorPackage.eINSTANCE.board_Name)
-	}
-	 
+
 	@Check
 	def validateOnboardSensor(Sensor sensor) {
 		if (sensor instanceof OnbSensor){
@@ -162,55 +170,70 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	@Check 
-	def validateLanguage(Language lang) {
-		if (!lang.name.equals("python")) {
-			error('''no support for language «lang.name», only "python"''',
-				CodeGeneratorPackage.eINSTANCE.language_Name, UNSUPPORTED_LANGUAGE)
-		} else {
-			info('''generator supports "python"''', CodeGeneratorPackage.eINSTANCE.language_Name)
+	@Check
+	def checkBoard(Board board) {
+		val visited = new HashSet<Board>
+		if (hasCycle(board, visited)){
+			error('''cyclic inheritance in hierarchy of board «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
+			return
 		}
-	} 
-
-
-	def checkNoDuplicateDataName(List<Data> datas) {
-		val dataNameValues = new HashMap<String, Set<Data>>
-		for (data : datas) {
-			val name = data.name
-			if (dataNameValues.containsKey(name)) {
-				dataNameValues.get(name).add(data)
-			} else {
-				dataNameValues.put(name, Sets.newHashSet(data))
+		if (!(board.hasSensor)){
+			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
+		}
+	}
+	
+	@Check(CheckType.NORMAL)
+	def checkUniqueBoardNames(Board board){
+		val config = board.getContainerOfType(DeviceConf)
+		for (Board b: config.board.filter[it !== board]){
+			if (board.name.equals(b.name)){
+				error('''duplicate «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
 			}
 		}
+		val boardNames = board.superTypes.map[abstractBoard | abstractBoard.name]
+		val uniqueBoardNames = new HashSet<String>
+		val duplicated = boardNames.filter[ab | ab !== null && !uniqueBoardNames.add(ab)].toSet
+		if (!(duplicated.empty)){
+			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
+		}
+	}
 
-		for (Set<Data> dataSet : dataNameValues.values) {
-			if (dataSet.size > 1) {
-				for (data : dataSet) {
-					error('''duplicate «data.name»''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+	@Check
+	def checkSampleSignal(ChannelOut channelOut){
+		val sampler = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.sampler
+		if (sampler !== null && sampler instanceof SignalSampler) {
+			val board = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.getContainerOfType(Board)
+			if (board !== null){
+				val channel = channelOut.channel
+				if (channel !== null && !board.inheritedInChannels.contains(channel)){
+					error("Channel " + channel.name + " must be an input channel when used with sample signal", channelOut, CodeGeneratorPackage.Literals.CHANNEL_OUT__CHANNEL)
 				}
 			}
 		}
 	}
 	
-	def checkNoDuplicateSensorName(List<Sensor> sensors) {
-		val sensorNameValues = new HashMap<String, Set<Sensor>>
-		for (sensor : sensors) {
-			val name = sensor.sensortype
-			if (sensorNameValues.containsKey(name)) {
-				sensorNameValues.get(name).add(sensor)
-			} else {
-				sensorNameValues.put(name, Sets.newHashSet(sensor))
+	@Check(CheckType.NORMAL)
+	def checkDuplicateBoardsInFiles(DeviceConf conf) {
+		val boardType = CodeGeneratorPackage.eINSTANCE.board
+		val boards = conf.visibleContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
+		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
+		val externalBoards = boards.toSet
+		externalBoards.removeAll(exportedBoards.toSet)
+		val externalBoardNames= externalBoards.toMap[qualifiedName]
+		
+		for (board : conf.board) {
+			if (externalBoardNames.containsKey(qualifiedNameProvider.getFullyQualifiedName(board))) {
+				error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
 			}
-		}
-
-		for (Set<Sensor> sensorSet : sensorNameValues.values) {
-			if (sensorSet.size > 1) {
-				for (sensor : sensorSet) {
-					error('''duplicate sensor «sensor.sensortype»''', sensor, CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-				}
-			}
-		}
+	}
+	
+	def visibleContainers(EObject eObject) {
+		val resourceDescription = eObject.resourceDescription
+		containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)
+	}
+	
+	def resourceDescription(EObject eObject) {
+		resourceDescriptions.getResourceDescription(eObject.eResource.URI)
 	}
 	
 	@Check
@@ -228,83 +251,40 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def chackUnusedChannels(){
 		
 	}
-
-	@Check // TODO
-	def validateData(Data data) {
-		var datas = new ArrayList<Data>
-		var sensors = new ArrayList<Sensor>
-		for (EObject eObject : data.eResource.getContents()) {
-			if (eObject instanceof DeviceConf) {
-				val deviceConf = eObject as DeviceConf
-				val board = deviceConf.board
-				val cloud = deviceConf.cloud
-				val fog = deviceConf.fog
-
-				if (board.size > 0) {
-					for (Sensor sensor : board.get(0).sensors) {
-						datas.addAll(sensor.datas)
-						sensors.add(sensor)
-					}
-				}
-
-				if (cloud.size > 0) {
-					for (Transformation transformation : cloud.get(0).transformations) {
-						datas.addAll(transformation.datas)
-					}
-				}
-
-				if (fog.size > 0) {
-					for (Transformation transformation : fog.get(0).transformations) {
-						datas.addAll(transformation.datas)
-					}
-				}
-
-//				checkNoDuplicateDataName(datas)
-				checkNoDuplicateSensorName(sensors)
-				return
-			}
-		}
-	}	
 		
-	def private Collection<Data> dfs(Board board, HashSet<Board> visited, HashMap<String, Data> nameData){
-		visited.add(board)
-		board.sensors.forEach[sensor | sensor.datas.forEach[data | nameData.put(data.name, data)]] 
-		for(AbstractBoard abstractBoard: board.superTypes){
-			if (!(visited.contains(abstractBoard))){
-				dfs(abstractBoard, visited, nameData)
-			}
-		}
-		return nameData.values
-	}
-	
+
 	
 	@Check
 	def checkUniqueDataNames(Data data){
 		val sensor = data.getContainerOfType(Sensor)
 		val board = sensor.getContainerOfType(Board)
-		
-		val datas = dfs(board, new HashSet<Board>, new HashMap<String, Data>)
+		val datas = inheritedData(board)
 		
 		for(Data d: datas.filter[it !== data]){
 			if (data.name.equals(d.name)){
-				error('''duplicate «data.name»''', CodeGeneratorPackage.Literals.DATA__NAME)
+				error('''duplicate «data.name»''', data, CodeGeneratorPackage.Literals.DATA__NAME)
 			}
 		}
 		
 		for (Sensor s : board.sensors){
 			for (d : s.datas.filter[it !== data]){
 				if (d.name.equals(data.name)){
-				error('''duplicate «data.name»''', CodeGeneratorPackage.Literals.DATA__NAME)
-			}
+					error('''duplicate «data.name»''', data, CodeGeneratorPackage.Literals.DATA__NAME)
+				}
 			}
 		}
 	}
-	
-	
-	
-	
-	
-	
+
+	@Check
+	def validateVariable(Variables variables){	
+		val eContainer = variables.eContainer
+		if (eContainer instanceof Provider){
+			val provider = eContainer as Provider
+			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
+		}
+	}
+
+		
 	def checkNoDuplicateVariableNamesInStatement(List<Variable> variables) {
 		val variableNameValues = new HashMap<String, Set<Variable>>
 
@@ -326,45 +306,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	@Check
-	def validateVariable(Variables variables){	
-		val eContainer = variables.eContainer
-		if (eContainer instanceof Provider){
-			val provider = eContainer as Provider
-			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
-		}
-	}
-
-	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
-		if (transformationOuts.size >1){
-			val firstPipelineType = transformationOuts.get(0).pipeline.lastType
-			for(TransformationOut transformationOut: transformationOuts){
-				val currentPipelineType = transformationOut.pipeline.lastType
-				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
-						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
-					)
-				}
-			}
-		}
-	} 
-	
-	//TODO SENSORDATAOUT
-	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
-		if (channelOuts.size !==0){
-			val firstPipelineType = channelOuts.get(0).pipeline.lastType
-			for(ChannelOut channelOut: channelOuts){
-				val currentPipelineType = channelOut.pipeline.lastType
-				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
-					if (firstPipelineType !== currentPipelineType){
-						error('''expected «firstPipelineType» got «currentPipelineType»''',
-							channelOut, CodeGeneratorPackage.eINSTANCE.sensorDataOut_Pipeline
-						)
-					}
-				}
-			}
-		}
-	}
 	
 	@Check
 	def checkWindowWidth(Window window){
@@ -373,7 +314,52 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	def checkFirstPipeline(Pipeline pipeline) {
+
+	
+	
+	@Check
+	def validateWindowNotUsedOnString(Map map){
+		if (map.expression.type == TypeChecker.Type.STRING) {
+			var next = map.next
+			while (next !== null && next instanceof TuplePipeline){
+				next = next.next
+			}
+			if (next instanceof WindowPipeline){
+				error('''cannot use byWindow on string type''', next, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+			}
+		}
+	}
+	
+	@Check
+	def validatePipelineOutputs(Data data){
+		switch (data) {
+			case TransformationData: {
+				var transformationOuts = new ArrayList<TransformationOut>
+				val transformationDataOutputs = (data as TransformationData).outputs
+			
+				for (TransformationOut transformationOut : transformationDataOutputs) {
+					transformationOuts.add(transformationOut)
+					checkByWindowNotUsedOnTuple(transformationOut.pipeline)
+				}
+				checkSameTypeOfTransformationOutPipelines(transformationOuts)	
+			}
+			case SensorData: {
+				var channelOuts = new ArrayList<ChannelOut>
+				val sensorDataOutputs = (data as SensorData).outputs
+			
+				for(SensorDataOut sensorDataOut : sensorDataOutputs) {
+					if (sensorDataOut instanceof ChannelOut) {
+						val channelOut = sensorDataOut as ChannelOut
+						channelOuts.add(channelOut)
+						checkByWindowNotUsedOnTuple(channelOut.pipeline)
+					}
+				}
+				checkSameTypeOfChannelOutPipelines(channelOuts)
+			}
+		}
+	}
+	
+	def checkByWindowNotUsedOnTuple(Pipeline pipeline) {
 		if (pipeline instanceof WindowPipeline) {
 			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
 			return
@@ -392,44 +378,34 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	
-	@Check
-	def validateWindowNotUsedOnString(Map map){
-		if (map.expression.type == TypeChecker.Type.STRING) {
-			var next = map.next
-			while (next !== null && next instanceof TuplePipeline){
-				next = next.next
-			}
-			if (next instanceof WindowPipeline){
-				error('''cannot use byWindow on string type''', next, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
-			}
-		}
-	}
-	
-	@Check
-	def validatePipelineOutputs(Data data){
-		if (data instanceof TransformationData) {
-			var transformationOuts = new ArrayList<TransformationOut>
-			val transformationDataOutputs = (data as TransformationData).outputs
-			
-			for (TransformationOut transformationOut : transformationDataOutputs) {
-				transformationOuts.add(transformationOut)
-				checkFirstPipeline(transformationOut.pipeline)
-			}
-			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
-		} else if (data instanceof SensorData) {
-			var channelOuts = new ArrayList<ChannelOut>
-			val sensorDataOutputs = (data as SensorData).outputs
-			
-			for(SensorDataOut sensorDataOut : sensorDataOutputs) {
-				if (sensorDataOut instanceof ChannelOut) {
-					val channelOut = sensorDataOut as ChannelOut
-					channelOuts.add(channelOut)
-					checkFirstPipeline(channelOut.pipeline)
+	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
+		if (transformationOuts.size >1){
+			val firstPipelineType = transformationOuts.get(0).pipeline.lastType
+			for(TransformationOut transformationOut: transformationOuts){
+				val currentPipelineType = transformationOut.pipeline.lastType
+				if (firstPipelineType !== currentPipelineType){
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
+						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
+					)
 				}
 			}
-			checkSameTypeOfChannelOutPipelines(channelOuts)
-		}	
+		}
+	} 
+	
+	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
+		if (channelOuts.size !==0){
+			val firstPipelineType = channelOuts.get(0).pipeline.lastType
+			for(ChannelOut channelOut: channelOuts){
+				val currentPipelineType = channelOut.pipeline.lastType
+				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
+					if (firstPipelineType !== currentPipelineType){
+						error('''expected «firstPipelineType» got «currentPipelineType»''',
+							channelOut, CodeGeneratorPackage.eINSTANCE.sensorDataOut_Pipeline
+						)
+					}
+				}
+			}
+		}
 	}
 	
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
@@ -550,121 +526,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Check
 	def checkPower(Not not) {
 		not.value.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.NOT__VALUE)
-	}
-	
-		
-	def boolean hasSensor(Board current){
-		if (current.sensors.size !== 0){
-			return true
-		}
-		
-		for(Board board : current.superTypes){
-			if (board.hasSensor){
-				return true
-			}
-		}
-		return false
-	}
-	
-	def boolean hasCycle(Board current, HashSet<Board> visited){
-		if (visited.contains (current)){
-			return true
-		}
-		visited.add(current)
-	
-		for (Board board: current.superTypes){
-			if (board.name === current.name || hasCycle(board, visited)){
-				return true
-			}
-		}
-		visited.remove(current)
-		return false
-	}
-	
-	
-	@Check
-	def checkBoard(Board board) {
-		val visited = new HashSet<Board>
-		if (hasCycle(board, visited)){
-			error('''cyclic inheritance in hierarchy of board «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
-			return
-		}
-		if (!(board.hasSensor)){
-			error('''«board.name» must have atleast 1 sensor''', CodeGeneratorPackage.Literals.BOARD__NAME)
-		}
-	}
-	
-	@Check(CheckType.NORMAL)
-	def checkUniqueBoardNames(Board board){
-		val config = board.getContainerOfType(DeviceConf)
-		for (Board b: config.board.filter[it !== board]){
-			if (board.name.equals(b.name)){
-				error('''duplicate «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
-			}
-		}
-		val boardNames = board.superTypes.map[abstractBoard | abstractBoard.name]
-		val uniqueBoardNames = new HashSet<String>
-		val duplicated = boardNames.filter[ab | ab !== null && !uniqueBoardNames.add(ab)].toSet
-		if (!(duplicated.empty)){
-			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
-		}
-	}
-
-	def visibleContainers(EObject eObject) {
-		val resourceDescription = eObject.resourceDescription
-		containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)
-	}
-	
-	def resourceDescription(EObject eObject) {
-		resourceDescriptions.getResourceDescription(eObject.eResource.URI)
-	}
-	
-	@Check(CheckType.NORMAL)
-	def checkDuplicateBoardsInFiles(DeviceConf conf) {
-		val boardType = CodeGeneratorPackage.eINSTANCE.board
-		val boards = conf.visibleContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
-		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
-		val externalBoards = boards.toSet
-		externalBoards.removeAll(exportedBoards.toSet)
-		val externalBoardNames= externalBoards.toMap[qualifiedName]
-		
-		for (board : conf.board) {
-			if (externalBoardNames.containsKey(qualifiedNameProvider.getFullyQualifiedName(board))) {
-				error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
-			}
-	}
-	
-	static def inheritedInChannels(Board board){
-		val visited = new HashSet<Board>
-		val nameInChannel = new HashMap<String, Channel>
-		dfsInChannels(board, visited, nameInChannel)
-		
-	}
-	
-	static def private Collection<Channel> dfsInChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameInChannel){
-		visited.add(board)
-		board.inputs.forEach[channel | nameInChannel.put(channel.name, channel)]
-		for(AbstractBoard abstractBoard: board.superTypes){
-			if (!(visited.contains(abstractBoard))){
-				dfsInChannels(abstractBoard, visited, nameInChannel)
-			}
-		}
-		return nameInChannel.values
-	}
-	
-	
-	@Check
-	def checkSampleSignal(ChannelOut channelOut){
-		val sampler = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.sampler
-		if (sampler !== null && sampler instanceof SignalSampler) {
-			val board = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.getContainerOfType(Board)
-			if (board !== null){
-				val channel = channelOut.channel
-				if (channel !== null && !board.inheritedInChannels.contains(channel)){
-					error("Channel " + channel.name + " must be an input channel when used with sample signal", channelOut, CodeGeneratorPackage.Literals.CHANNEL_OUT__CHANNEL)
-				}
-			}
-		}
 	}
 	
 }

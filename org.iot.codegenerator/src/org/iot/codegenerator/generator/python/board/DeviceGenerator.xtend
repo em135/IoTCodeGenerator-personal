@@ -4,8 +4,8 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
+import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class DeviceGenerator {
 	// Changed with sensors
