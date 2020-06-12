@@ -127,7 +127,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-		
 	@Check
 	def checkForDuplicateSensors (Sensor sensor){
 		val board = sensor.getContainerOfType(Board)
@@ -297,8 +296,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''window width must be 2 or greater''', window, CodeGeneratorPackage.eINSTANCE.window_Width)
 		}
 	}
-	
-
 	
 	
 	@Check

@@ -8,6 +8,7 @@ import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class BoardGenerator {
+	
 	@Inject CompositionRootGenerator compositionRootGenerator
 	@Inject SensorProviderGenerator sensorProviderGenerator
 	@Inject DeviceGenerator deviceGenerator
@@ -55,7 +56,6 @@ class BoardGenerator {
 		
 		if (board.usesOled) {
 			"/libfiles/ssd1306.py".compileAsLibfile()
-//			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
 			"/libfiles/oled_provider.py".compileAsLibfile()
 		}
 	}

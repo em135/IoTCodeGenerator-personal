@@ -3,6 +3,7 @@
  */
 package org.iot.codegenerator.scoping
 
+import java.util.ArrayList
 import java.util.Collection
 import java.util.Collections
 import java.util.HashMap
@@ -26,9 +27,6 @@ import org.iot.codegenerator.codeGenerator.Sensor
 
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.ChannelOut
-import java.util.ArrayList
-import java.util.List
 
 /**
  * This class contains custom scoping description.
@@ -132,7 +130,6 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		return newArrayList(nameChannel.values)
 	}
 	
-		
 	def private Collection<Sensor> dfs(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){
 		visited.add(board)
 		board.sensors.forEach[sensor |if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)] 
@@ -143,6 +140,5 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		}
 		return nameSensor.values
 	}
-	
 
 }

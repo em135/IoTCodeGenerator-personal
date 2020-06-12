@@ -30,12 +30,6 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 			fsa.generateFile("board/config.json", board.inheritedChannels.compile)
 			board.compile(fsa)
 		}
-		
-		//val fog = resource.allContents.filter(Fog).next()
-		// TODO
-		
-		//val cloud = resource.allContents.filter(Cloud).next()
-		// TODO
 	}
 
 	def String compile(Iterable<Channel> channels) {

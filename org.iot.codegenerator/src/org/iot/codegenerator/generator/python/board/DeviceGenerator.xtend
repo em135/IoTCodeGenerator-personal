@@ -8,7 +8,6 @@ import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class DeviceGenerator {
-	// Changed with sensors
 	
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()

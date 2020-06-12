@@ -14,9 +14,6 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.iot.codegenerator.util.InheritanceUtil.*
-import org.eclipse.emf.common.util.EList
-import org.iot.codegenerator.codeGenerator.Variable
-import java.util.List
 
 class CompositionRootGenerator {
 	
@@ -141,7 +138,6 @@ class CompositionRootGenerator {
 			BoardGenerator.compileAsLibfile("/libfiles/mpu6050.py")
 	}
 
-	// TODO: Driver provider
 	private def String compilePipelineProviders(Board board, GeneratorEnvironment env) {
 		'''
 			«FOR sensor : board.inheritedSensors»

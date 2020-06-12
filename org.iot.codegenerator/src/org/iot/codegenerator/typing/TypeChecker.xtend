@@ -1,6 +1,5 @@
 package org.iot.codegenerator.typing
 
-import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.BooleanLiteral
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Div
@@ -15,12 +14,13 @@ import org.iot.codegenerator.codeGenerator.NumberLiteral
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Reference
+import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.StringLiteral
 import org.iot.codegenerator.codeGenerator.Window
 
-class TypeChecker {
+import static extension org.eclipse.xtext.EcoreUtil2.*
 
-	@Inject extension ReferenceTypeProvider
+class TypeChecker {
 
 	enum Type {
 		INT,
@@ -170,5 +170,21 @@ class TypeChecker {
 		}
 
 		return reference.typeOf(this)
+	}
+	
+	def typeOf(Reference ref, TypeChecker typeChecker) {
+		val variable = ref.variable
+		
+		val map = variable.getContainerOfType(Map)
+		if (map !== null) {
+			return typeChecker.type(map.expression)
+		}
+
+		val baseSensor = variable.getContainerOfType(Sensor)
+		if (baseSensor !== null) {
+			return Type.INT
+		}
+
+		Type.INVALID
 	}
 }

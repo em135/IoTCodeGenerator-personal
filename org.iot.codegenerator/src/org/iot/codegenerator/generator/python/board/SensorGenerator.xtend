@@ -34,7 +34,6 @@ class SensorGenerator {
 	}
 
 	private def String compileClass(Sensor sensor, GeneratorEnvironment env) {
-		// TODO: Only generate testing utilities if we pass a testing flag to the generator
 		'''
 			class «sensor.sensortype.asClass»:
 				
