@@ -15,14 +15,13 @@ class InheritanceUtil {
 	
 	static def inheritedSensors(Board board){
 		val visited = new HashSet<Board>
-		val nameSensor = new HashMap<String, Sensor> // Change list of objects to sensor
+		val nameSensor = new HashMap<String, Sensor>
 		dfsSensors(board, visited, nameSensor)
 	}
 	
-	static def Collection<Sensor> dfsSensors(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){ // change list of objects to sensor
+	static def Collection<Sensor> dfsSensors(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){
 		visited.add(board)
-		//TODO does it have to be a map? (can it be a set?)
-		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)] // change list of object to snesor
+		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)]
 		for(AbstractBoard abstractBoard: board.superTypes){
 			if (!(visited.contains(abstractBoard))){
 				dfsSensors(abstractBoard, visited, nameSensor)
@@ -81,7 +80,6 @@ class InheritanceUtil {
 		}
 		return newArrayList(nameData.values)
 	}
-	
 	
 	static def usesOled(Board board) {
 		for (sensor : board.inheritedSensors){
