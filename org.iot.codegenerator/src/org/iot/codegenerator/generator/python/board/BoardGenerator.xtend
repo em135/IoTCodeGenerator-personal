@@ -17,7 +17,7 @@ class BoardGenerator {
 	
 	static IFileSystemAccess2 _fsa
 	
-	def compile(Board board, IFileSystemAccess2 fsa) {
+	def compile(Board board, IFileSystemAccess2 fsa) {	
 		BoardGenerator._fsa = fsa
 		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
 		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(board))
@@ -80,7 +80,7 @@ class BoardGenerator {
 				# def provide_«board.name.asModule»(self):
 				#     board = super().provide_«board.name.asModule»()
 				#     board.add_sensor(...)
-				«IF !board.inheritedInChannels.empty»
+				«IF !board.inheritedInputs.empty»
 					#     board.add_input_channel(...)
 				«ENDIF»
 				#     board.add_output_channel(...)

@@ -206,7 +206,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			val board = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.getContainerOfType(Board)
 			if (board !== null){
 				val channel = channelOut.channel
-				if (channel !== null && !board.inheritedInChannels.contains(channel)){
+				if (channel !== null && !board.inheritedInputs.contains(channel)){
 					error("Channel " + channel.name + " must be an input channel when used with sample signal", channelOut, CodeGeneratorPackage.Literals.CHANNEL_OUT__CHANNEL)
 				}
 			}

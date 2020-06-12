@@ -93,16 +93,16 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 
 	def private IScope channelsScope(EObject context){
 		if (context instanceof Board){
-			return context.inChannelsScope
+			return context.inputsScope
 		}
 		val board = context.eContainer.getContainerOfType(Board)
 		if (board !== null){
-			return board.inChannelsScope
+			return board.inputsScope
 		}
 		return IScope.NULLSCOPE
 	}
 	
-	def private IScope inChannelsScope(Board board){
+	def private IScope inputsScope(Board board){
 		val channels = board.inheritedChannels
 		if (!channels.empty){
 			return Scopes.scopeFor(channels)			

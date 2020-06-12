@@ -9,11 +9,11 @@ import org.iot.codegenerator.codeGenerator.Channel
 class GeneratorEnvironment {
 
 	Map<String, Set<String>> imports
-	Set<Channel> channels
+	Set<Channel> usedChannels	
 	
 	new() {
 		imports = new HashMap()
-		channels = new HashSet()
+		usedChannels = new HashSet()
 	}
 
 	def String useImport(String module) {
@@ -42,12 +42,12 @@ class GeneratorEnvironment {
 	}
 
 	def Channel useChannel(Channel channel) {
-		channels.add(channel)
+		usedChannels.add(channel)
 		return channel
 	}
 
 	def Iterable<Channel> getChannels() {
-		return channels
+		return usedChannels
 	}
 	
 }

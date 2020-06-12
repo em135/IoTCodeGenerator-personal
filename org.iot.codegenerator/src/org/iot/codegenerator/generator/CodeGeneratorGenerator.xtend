@@ -8,9 +8,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
+import org.iot.codegenerator.codeGenerator.ConcreteBoard
 import org.iot.codegenerator.generator.python.board.BoardGenerator
 
 import static extension org.iot.codegenerator.util.InheritanceUtil.*
@@ -26,12 +26,14 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val board = resource.allContents.filter(Board).next()
-		if (!(board instanceof AbstractBoard)){
+		if (board instanceof ConcreteBoard){
+		
 			fsa.generateFile("board/config.json", board.inheritedChannels.compile)
 			board.compile(fsa)
+			
 		}
 	}
-
+	
 	def String compile(Iterable<Channel> channels) {
 		val channelFormat = '": {\n        "type": "",\n        "lane": ""\n    }'
 		var compiled = '{\n    "wifi": {\n        "ssid": "",\n        "password": "",\n        "cloud": ""\n    },\n    "serial": {\n        "baud": "",\n        "databits": "",\n        "paritybits": "",\n        "stopbit": ""\n    },\n'

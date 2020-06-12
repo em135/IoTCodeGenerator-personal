@@ -26,10 +26,10 @@ class InheritanceUtil {
 			if (!(visited.contains(abstractBoard))){
 				dfsSensors(abstractBoard, visited, nameSensor)
 			}
-			}
-			return nameSensor.values
+		}
+		return nameSensor.values
 	}
-	
+	 
 	static def inheritedChannels(Board board){
 		val visited = new HashSet<Board>
 		val nameChannel = new HashMap<String, Channel> 
@@ -48,22 +48,22 @@ class InheritanceUtil {
 		return nameChannel.values
 	}
 	
-	static def inheritedInChannels(Board board){
+	static def inheritedInputs(Board board){
 		val visited = new HashSet<Board>
-		val nameInChannel = new HashMap<String, Channel>
-		dfsInChannels(board, visited, nameInChannel)
+		val nameInput = new HashMap<String, Channel>
+		dfsInputs(board, visited, nameInput)
 		
 	}
 	
-	static def private Collection<Channel> dfsInChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameInChannel){
+	static def private Collection<Channel> dfsInputs(Board board, HashSet<Board> visited, HashMap<String, Channel> nameInput){
 		visited.add(board)
-		board.inputs.forEach[channel | nameInChannel.put(channel.name, channel)]
+		board.inputs.forEach[channel | nameInput.put(channel.name, channel)]
 		for(AbstractBoard abstractBoard: board.superTypes){
 			if (!(visited.contains(abstractBoard))){
-				dfsInChannels(abstractBoard, visited, nameInChannel)
+				dfsInputs(abstractBoard, visited, nameInput)
 			}
 		}
-		return nameInChannel.values
+		return nameInput.values
 	}
 	
 	static def inheritedData(Board board){

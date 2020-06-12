@@ -79,7 +79,7 @@ class CompositionRootGenerator {
 				«FOR sensor : board.inheritedSensors»
 					«addSensor(board, sensor)»
 				«ENDFOR»
-				«FOR channel : board.inheritedInChannels»
+				«FOR channel : board.inheritedInputs»
 					«board.name.asInstance».add_input_channel(self.«env.useChannel(channel).providerName»())
 				«ENDFOR»
 				«FOR channel : board.inheritedChannels»
