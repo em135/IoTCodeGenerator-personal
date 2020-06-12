@@ -1,6 +1,5 @@
 package org.iot.codegenerator.generator.python.board
 
-import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Pipeline
@@ -8,55 +7,55 @@ import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.generator.python.BoardEnvironment
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class CompositionRootGenerator {
 	
-	def String compile(Board board) {
-		val env = new GeneratorEnvironment()
-		val classDef = board.compileClass(env)
+	def String compile(BoardEnvironment boardEnv) {
+		val genEnv = new GeneratorEnvironment()
+		val classDef = boardEnv.compileClass(genEnv)
 
 		'''
-			«env.compileImports»
+			«genEnv.compileImports»
 			
 			«classDef»
 		'''
 	}
 
-	private def String compileClass(Board board, GeneratorEnvironment env) {
-		val sensorProviders = board.compileSensorProviders(env)
-		val pipelineProviders = board.compilePipelineProviders(env)
-		val boardProvider = board.compileBoardProvider(env)
+	private def String compileClass(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
+		val sensorProviders = boardEnv.compileSensorProviders(genEnv)
+		val pipelineProviders = boardEnv.compilePipelineProviders(genEnv)
+		val boardProvider = boardEnv.compileBoardProvider(genEnv)
 
 		'''
 			class CompositionRoot:
 				
-				«board.compileConstructor(env)»
+				«boardEnv.compileConstructor(genEnv)»
 				«boardProvider»
 				«sensorProviders»
 				«pipelineProviders»
-				«board.compileChannelProviders(env)»
-				«compileMakeChannel(env)»
-				«board.computeSensorProviders(env)»
+				«boardEnv.compileChannelProviders(genEnv)»
+				«compileMakeChannel(genEnv)»
+				«boardEnv.computeSensorProviders(genEnv)»
 
 
 		'''
 	}
 
 
-	private def String compileConstructor(Board board, GeneratorEnvironment env) {
-		env.useImport("ujson")
+	private def String compileConstructor(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
+		genEnv.useImport("ujson")
 
 		'''
 			def __init__(self):
-				«FOR channel : board.inheritedChannels»
+				«FOR channel : boardEnv.inheritedChannels»
 					self.«channel.name.asInstance» = None
-					«board.compileOledProvider(env)»
+					«boardEnv.compileOledProvider(genEnv)»
 				«ENDFOR»
 				
 				with open("config.json", "r") as _conf_file:
@@ -65,40 +64,40 @@ class CompositionRootGenerator {
 		'''
 	}
 	
-	private def compileOledProvider(Board board, GeneratorEnvironment env){
-		if (board.usesOled){
-			env.useImport("oled_provider", "OledWrapper")
+	private def compileOledProvider(BoardEnvironment boardEnv, GeneratorEnvironment genEnv){
+		if (boardEnv.usesOled){
+			genEnv.useImport("oled_provider", "OledWrapper")
 			'''self._oled = OledWrapper()'''
 		}
 	}
 
-	private def String compileBoardProvider(Board board, GeneratorEnvironment env) {
+	private def String compileBoardProvider(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			def «board.providerName»(self):
-				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
-				«FOR sensor : board.inheritedSensors»
-					«addSensor(board, sensor)»
+			def «boardEnv.providerName»(self):
+				«boardEnv.name.asInstance» = «genEnv.useImport(boardEnv.name.asModule, boardEnv.name.asClass)»()
+				«FOR sensor : boardEnv.inheritedSensors»
+					«addSensor(boardEnv, sensor)»
 				«ENDFOR»
-				«FOR channel : board.inheritedInputs»
-					«board.name.asInstance».add_input_channel(self.«env.useChannel(channel).providerName»())
+				«FOR channel : boardEnv.inheritedInputs»
+					«boardEnv.name.asInstance».add_input_channel(self.«genEnv.useChannel(channel).providerName»())
 				«ENDFOR»
-				«FOR channel : board.inheritedChannels»
-					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
+				«FOR channel : boardEnv.inheritedChannels»
+					«boardEnv.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
-				return «board.name.asInstance»
+				return «boardEnv.name.asInstance»
 				
 		'''
 	}
 	
-	private def addSensor(Board board, Sensor sensor){
-		'''«board.name.asInstance».add_sensor("«sensor.sensorType.asModule»", self.«sensor.providerName»())'''
+	private def addSensor(BoardEnvironment boardEnv, Sensor sensor){
+		'''«boardEnv.name.asInstance».add_sensor("«sensor.sensorType.asModule»", self.«sensor.providerName»())'''
 	}
 
-	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
+	private def String compileSensorProviders(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			«FOR sensor : board.inheritedSensors» 
+			«FOR sensor : boardEnv.inheritedSensors» 
 				def «sensor.providerName»(self):
-					«sensor.sensorType.asInstance» = «env.useImport(sensor.sensorType.asModule)».«sensor.sensorType.asClass»(self.provide_driver_«sensor.sensorType»())
+					«sensor.sensorType.asInstance» = «genEnv.useImport(sensor.sensorType.asModule)».«sensor.sensorType.asClass»(self.provide_driver_«sensor.sensorType»())
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
 							«sensor.sensorType.asInstance».add_pipeline(«providerPipelineName(data, out)»())
@@ -110,17 +109,17 @@ class CompositionRootGenerator {
 		'''
 	}
 	
-	private def String computeSensorProviders(Board board, GeneratorEnvironment env){
+	private def String computeSensorProviders(BoardEnvironment boardEnv, GeneratorEnvironment genEnv){
 		'''
-			«FOR sensor : board.inheritedSensors»
-				«sensor.compileSensorProvider(env)»
+			«FOR sensor : boardEnv.inheritedSensors»
+				«sensor.compileSensorProvider(genEnv)»
 			«ENDFOR»
 		'''
 	}
 	
-	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment env){
+	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment genEnv){
 		determineSensorDriverLib(sensor.sensorType)
-		env.useImport("sensor_provider", sensor.sensorType+"_wrapper")
+		genEnv.useImport("sensor_provider", sensor.sensorType+"_wrapper")
 		'''
 		
 		def provide_driver_«sensor.sensorType»(self):
@@ -138,12 +137,12 @@ class CompositionRootGenerator {
 			BoardGenerator.compileAsLibfile("/libfiles/mpu6050.py")
 	}
 
-	private def String compilePipelineProviders(Board board, GeneratorEnvironment env) {
+	private def String compilePipelineProviders(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			«FOR sensor : board.inheritedSensors»
+			«FOR sensor : boardEnv.inheritedSensors»
 				«FOR data : sensor.sensorDatas»
 					«FOR out : data.outputs»
-						«out.compilePipelineProvider(env)»
+						«out.compilePipelineProvider(genEnv)»
 						
 					«ENDFOR»
 				«ENDFOR»
@@ -151,8 +150,8 @@ class CompositionRootGenerator {
 		'''
 	}
 
-	private def dispatch String compilePipelineProvider(ChannelOut out, GeneratorEnvironment env) {
-		env.useImport("pipeline", "Pipeline")
+	private def dispatch String compilePipelineProvider(ChannelOut out, GeneratorEnvironment genEnv) {
+		genEnv.useImport("pipeline", "Pipeline")
 		val variables = out.eContainer.getContainerOfType(Sensor).variables.ids
 	
 		val tupleSink = '''
@@ -169,27 +168,27 @@ class CompositionRootGenerator {
 
 		'''
 			def «out.providerName»(self):
-				«env.useChannel(out.channel).name.asInstance» = self.«out.channel.providerName»()
+				«genEnv.useChannel(out.channel).name.asInstance» = self.«out.channel.providerName»()
 				return Pipeline(
-					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
+					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, genEnv)»«ENDIF»
 				)
 		'''
 	}
 
-	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {
-		val inner = pipeline.next === null ? sink : pipeline.next.compilePipelineComposition(sink, env)
+	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment genEnv) {
+		val inner = pipeline.next === null ? sink : pipeline.next.compilePipelineComposition(sink, genEnv)
 		val sensorName = pipeline.getContainerOfType(Sensor).sensorType
 		val interceptorName = pipeline.interceptorName
 		
 		'''
-		«env.useImport(sensorName.asModule)».«interceptorName»(
+		«genEnv.useImport(sensorName.asModule)».«interceptorName»(
 			«inner»
 		)
 		'''
 	}
 
-	private def dispatch String compilePipelineProvider(ScreenOut out, GeneratorEnvironment env) {
-		env.useImport("pipeline", "Pipeline")
+	private def dispatch String compilePipelineProvider(ScreenOut out, GeneratorEnvironment genEnv) {
+		genEnv.useImport("pipeline", "Pipeline")
 				val variables = out.eContainer.getContainerOfType(Sensor).variables.ids
 		
 		val tupleSink = '''
@@ -207,14 +206,14 @@ class CompositionRootGenerator {
 		'''
 			def «out.providerName»(self):
 				return Pipeline(
-					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
+					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, genEnv)»«ENDIF»
 				)
 		'''
 	}
 
-	private def String compileChannelProviders(Board board, GeneratorEnvironment env) {
+	private def String compileChannelProviders(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			«FOR channel : board.inheritedChannels»
+			«FOR channel : boardEnv.inheritedChannels»
 				def «channel.providerName»(self):
 					if not self.«channel.name.asInstance»:
 						self.«channel.name.asInstance» = self.make_channel("«channel.name»")
@@ -224,9 +223,9 @@ class CompositionRootGenerator {
 		'''
 	}
 
-	private def String compileMakeChannel(GeneratorEnvironment env) {
-		env.useImport("communication", "Serial")
-		env.useImport("communication", "Wifi")
+	private def String compileMakeChannel(GeneratorEnvironment genEnv) {
+		genEnv.useImport("communication", "Serial")
+		genEnv.useImport("communication", "Wifi")
 
 		'''
 			def make_channel(self, identifier: str):
@@ -246,8 +245,8 @@ class CompositionRootGenerator {
 	/*
 	 * Utility extension methods
 	 */
-	private def String providerName(Board board) {
-		'''provide_«board.name.asModule»'''
+	private def String providerName(BoardEnvironment boardEnv) {
+		'''provide_«boardEnv.name.asModule»'''
 	}
 
 	private def String providerName(Sensor sensor) {

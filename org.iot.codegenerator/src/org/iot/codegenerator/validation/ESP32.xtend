@@ -5,7 +5,7 @@ import java.util.Map
 
 // This class should be in the util folder, but a bug is preventing this
 class ESP32 {
-
+		
 	// The number of values read from the sensors
 	Map<String, Integer> sensorParameterCount = #{
 		"light" -> 1,

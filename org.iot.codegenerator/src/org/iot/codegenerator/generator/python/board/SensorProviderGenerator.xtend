@@ -1,35 +1,34 @@
 package org.iot.codegenerator.generator.python.board
 
-import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Sensor
+import org.iot.codegenerator.generator.python.BoardEnvironment
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class SensorProviderGenerator { 
 	
-	def compile(Board board) {
-		val env = new GeneratorEnvironment()
+	def compile(BoardEnvironment boardEnv) {
+		val genEnv = new GeneratorEnvironment()
 		
 		'''
 		from machine import Pin, I2C
 		i2c = I2C(-1, Pin(26, Pin.IN), Pin(25, Pin.OUT))
 		 
-        «FOR sensor : board.inheritedSensors»
+        «FOR sensor : boardEnv.inheritedSensors»
 
 		class «sensor.sensorType»_wrapper:
 		
 			def __init__(self):
-				«sensor.getInitDriver(env)»
+				«sensor.getInitDriver(genEnv)»
 			
 			def read_data(self):
-				«sensor.getReadDriver(env)»
+				«sensor.getReadDriver(genEnv)»
         «ENDFOR»
 		'''
 	}
 	
-	private def String getInitDriver(Sensor sensor, GeneratorEnvironment env){
+	private def String getInitDriver(Sensor sensor, GeneratorEnvironment genEnv){
 		val sensorType = sensor.sensorType
 		switch (sensorType) {
 			case "thermometer": {
@@ -63,7 +62,7 @@ class SensorProviderGenerator {
 		}
 	}
 	
-	private def String getReadDriver(Sensor sensor, GeneratorEnvironment env){
+	private def String getReadDriver(Sensor sensor, GeneratorEnvironment genEnv){
 			val sensorType = sensor.sensorType
 		switch (sensorType) {
 			case "thermometer": {

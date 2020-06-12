@@ -81,21 +81,6 @@ class InheritanceUtil {
 		return newArrayList(nameData.values)
 	}
 	
-	static def usesOled(Board board) {
-		for (sensor : board.inheritedSensors){
-			for (data : sensor.datas){
-				if (data instanceof SensorData){
-					for (output: data.outputs){
-						if (output instanceof ScreenOut){
-							return true
-						}
-					}
-				}
-			}
-		}
-		return false
-	}
-	
 	static def boolean hasSensor(Board current){
 		if (current.sensors.size !== 0){
 			return true

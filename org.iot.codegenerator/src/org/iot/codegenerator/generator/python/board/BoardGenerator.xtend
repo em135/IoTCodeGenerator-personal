@@ -2,10 +2,9 @@ package org.iot.codegenerator.generator.python.board
 
 import com.google.inject.Inject
 import org.eclipse.xtext.generator.IFileSystemAccess2
-import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.generator.python.BoardEnvironment
 
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
-import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 class BoardGenerator {
 	
@@ -17,19 +16,19 @@ class BoardGenerator {
 	
 	static IFileSystemAccess2 _fsa
 	
-	def compile(Board board, IFileSystemAccess2 fsa) {	
+	def compile(BoardEnvironment boardEnv, IFileSystemAccess2 fsa) {	
 		BoardGenerator._fsa = fsa
-		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
-		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(board))
-		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
+		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(boardEnv))
+		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(boardEnv))
+		fsa.generateFile('''board/«boardEnv.name.asModule».py''', deviceGenerator.compile(boardEnv))
 		if (fsa.isFile("board/main.py")) {
 			val mainContents = fsa.readTextFile("board/main.py")
 			fsa.generateFile('''board/main.py''', mainContents)
 		} else {
-			fsa.generateFile('''board/main.py''', compileMain(board))
+			fsa.generateFile('''board/main.py''', compileMain(boardEnv))
 		}
 		
-		for (sensor : board.inheritedSensors){
+		for (sensor : boardEnv.inheritedSensors){
 			val sensorType = sensor.sensorType
 			val sensorFileName = '''board/«sensorType»'''
 			switch (sensor.sensorType) {
@@ -54,7 +53,7 @@ class BoardGenerator {
 		"/libfiles/by_window_utils.py".compileAsLibfile()
 		"/libfiles/thread.py".compileAsLibfile()
 		
-		if (board.usesOled) {
+		if (boardEnv.usesOled) {
 			"/libfiles/ssd1306.py".compileAsLibfile()
 			"/libfiles/oled_provider.py".compileAsLibfile()
 		}
@@ -67,7 +66,7 @@ class BoardGenerator {
 		}
 	}
 
-	def String compileMain(Board board) {
+	def String compileMain(BoardEnvironment boardEnv) {
 		'''
 			from composition_root import CompositionRoot
 			
@@ -77,16 +76,16 @@ class BoardGenerator {
 				# To adapt the generated code, override the methods from CompositionRoot
 				# inside this class, for instance:
 				# 
-				# def provide_«board.name.asModule»(self):
-				#     board = super().provide_«board.name.asModule»()
+				# def provide_«boardEnv.name.asModule»(self):
+				#     board = super().provide_«boardEnv.name.asModule»()
 				#     board.add_sensor(...)
-				«IF !board.inheritedInputs.empty»
+				«IF !boardEnv.inheritedInputs.empty»
 					#     board.add_input_channel(...)
 				«ENDIF»
 				#     board.add_output_channel(...)
 				pass
 			
-			CustomCompositionRoot().provide_«board.name.asModule»().run()
+			CustomCompositionRoot().provide_«boardEnv.name.asModule»().run()
 		'''
 	}
 }

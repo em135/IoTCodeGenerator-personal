@@ -1,50 +1,49 @@
 package org.iot.codegenerator.generator.python.board
 
-import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.generator.python.BoardEnvironment
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
-import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
-import static extension org.iot.codegenerator.util.InheritanceUtil.*
+import static extension org.iot.codegenerator.util.GeneratorUtil.*
 
 class DeviceGenerator {
 	
-	def String compile(Board board) {
-		val env = new GeneratorEnvironment()
-		val classDef = board.compileClass(env)
+	def String compile(BoardEnvironment boardEnv) {
+		val genEnv = new GeneratorEnvironment()
+		val classDef = boardEnv.compileClass(genEnv)
 
 		'''
-			«env.compileImports»
+			«genEnv.compileImports»
 			
 			«classDef»
 		'''
 	}
 
-	private def String compileClass(Board board, GeneratorEnvironment env) {
+	private def String compileClass(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			class «board.name.asClass»:
+			class «boardEnv.name.asClass»:
 				
-				«board.compileConstructor(env)»
-				«board.compileSetupMethods(env)»
-				«board.compileInputLoop(env)»
-				«board.compileRunMethod(env)»
+				«boardEnv.compileConstructor(genEnv)»
+				«boardEnv.compileSetupMethods(genEnv)»
+				«boardEnv.compileInputLoop(genEnv)»
+				«boardEnv.compileRunMethod(genEnv)»
 		'''
 	}
 
-	private def String compileConstructor(Board board, GeneratorEnvironment env) {
+	private def String compileConstructor(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
 			def __init__(self):
 				self._sensors = {}
 				self._output_channels = []
-				«IF !board.inheritedInputs.empty»
+				«IF !boardEnv.inheritedInputs.empty»
 					self._input_channels = []
-					self._in_thread = «env.useImport("thread")».Thread(self._input_loop, "ThreadInput")
+					self._in_thread = «genEnv.useImport("thread")».Thread(self._input_loop, "ThreadInput")
 				«ENDIF»
 			
 		'''
 	}
 
-	private def String compileSetupMethods(Board board, GeneratorEnvironment env) {
+	private def String compileSetupMethods(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
 			def add_sensor(self, identifier: str, sensor):
 				self._sensors[identifier] = sensor
@@ -52,7 +51,7 @@ class DeviceGenerator {
 			def add_output_channel(self, channel):
 				self._output_channels.append(channel)
 			
-			«IF !board.inheritedInputs.empty»
+			«IF !boardEnv.inheritedInputs.empty»
 				def add_input_channel(self, channel):
 					self._input_channels.append(channel)
 				
@@ -60,9 +59,9 @@ class DeviceGenerator {
 		'''
 	}
 
-	private def String compileInputLoop(Board board, GeneratorEnvironment env) {
+	private def String compileInputLoop(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
 		'''
-			«IF !board.inheritedInputs.empty»
+			«IF !boardEnv.inheritedInputs.empty»
 				def _input_loop(self, thread: thread.Thread):
 					while thread.active:
 						for input_channel in self._input_channels:
@@ -76,17 +75,17 @@ class DeviceGenerator {
 		'''
 	}
 
-	private def String compileRunMethod(Board board, GeneratorEnvironment env) {
-		val frequencySensors = board.inheritedSensors.filter[isFrequency]
+	private def String compileRunMethod(BoardEnvironment boardEnv, GeneratorEnvironment genEnv) {
+		val frequencySensors = boardEnv.inheritedSensors.filter[isFrequency]
 
 		'''
 			def run(self):
-				«IF !board.inheritedInputs.empty»
+				«IF !boardEnv.inheritedInputs.empty»
 					self._in_thread.start()
 					
 				«ENDIF»
-				«env.useImport("thread")».join([
-					«IF !board.inheritedInputs.empty»
+				«genEnv.useImport("thread")».join([
+					«IF !boardEnv.inheritedInputs.empty»
 						self._in_thread«IF !frequencySensors.empty»,«ENDIF»
 					«ENDIF»
 					«FOR sensor : frequencySensors SEPARATOR ","»
