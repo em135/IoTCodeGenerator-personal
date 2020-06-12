@@ -14,6 +14,9 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import static extension org.iot.codegenerator.util.GeneratorUtil.*
 import static extension org.iot.codegenerator.util.InheritanceUtil.*
+import org.eclipse.emf.common.util.EList
+import org.iot.codegenerator.codeGenerator.Variable
+import java.util.List
 
 class CompositionRootGenerator {
 	
@@ -66,8 +69,8 @@ class CompositionRootGenerator {
 	}
 	
 	private def compileOledProvider(Board board, GeneratorEnvironment env){
-		env.useImport("oled_provider", "OledWrapper")
 		if (board.usesOled){
+			env.useImport("oled_provider", "OledWrapper")
 			'''self._oled = OledWrapper()'''
 		}
 	}
@@ -154,6 +157,13 @@ class CompositionRootGenerator {
 
 	private def dispatch String compilePipelineProvider(ChannelOut out, GeneratorEnvironment env) {
 		env.useImport("pipeline", "Pipeline")
+		val variables = out.eContainer.getContainerOfType(Sensor).variables.ids
+	
+		val tupleSink = '''
+		type('Sink', (object,), {
+			"handle": lambda data: «out.channel.name.asInstance».send((«FOR v: variables SEPARATOR ', '»data['«v.name»']«ENDFOR»)),
+			"next": None
+		})'''
 		
 		val sink = '''
 		type('Sink', (object,), {
@@ -165,7 +175,7 @@ class CompositionRootGenerator {
 			def «out.providerName»(self):
 				«env.useChannel(out.channel).name.asInstance» = self.«out.channel.providerName»()
 				return Pipeline(
-					«IF out.pipeline === null»«sink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
+					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
 				)
 		'''
 	}
@@ -184,6 +194,13 @@ class CompositionRootGenerator {
 
 	private def dispatch String compilePipelineProvider(ScreenOut out, GeneratorEnvironment env) {
 		env.useImport("pipeline", "Pipeline")
+				val variables = out.eContainer.getContainerOfType(Sensor).variables.ids
+		
+		val tupleSink = '''
+		type('Sink', (object,), {
+			"handle": lambda data: self._oled.send((«FOR v: variables SEPARATOR ', '»data['«v.name»']«ENDFOR»)),
+			"next": None
+		})'''
 		
 		val sink = '''
 		type('Sink', (object,), {
@@ -194,7 +211,7 @@ class CompositionRootGenerator {
 		'''
 			def «out.providerName»(self):
 				return Pipeline(
-					«IF out.pipeline === null»«sink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
+					«IF out.pipeline === null»«tupleSink»«ELSE»«out.pipeline.compilePipelineComposition(sink, env)»«ENDIF»
 				)
 		'''
 	}
