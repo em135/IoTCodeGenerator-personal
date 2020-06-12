@@ -79,7 +79,6 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		val datas = new HashSet<Data>
 		if (deviceConf === null){
 			deviceConf = cloud?.getContainerOfType(DeviceConf)
-			fog = deviceConf.fog.get(0) 
 			if (fog !== null){
 				fog.transformations.forEach[transformation | datas.addAll(transformation.datas)]
 			}
