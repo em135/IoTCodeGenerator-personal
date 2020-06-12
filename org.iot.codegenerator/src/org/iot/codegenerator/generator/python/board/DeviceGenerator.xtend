@@ -90,7 +90,7 @@ class DeviceGenerator {
 						self._in_thread«IF !frequencySensors.empty»,«ENDIF»
 					«ENDIF»
 					«FOR sensor : frequencySensors SEPARATOR ","»
-						self._sensors["«sensor.sensortype.asModule»"].thread
+						self._sensors["«sensor.sensorType.asModule»"].thread
 					«ENDFOR»
 					# TODO: Join on threads from output channels
 				])

@@ -21,7 +21,7 @@ class InheritanceUtil {
 	
 	static def Collection<Sensor> dfsSensors(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){
 		visited.add(board)
-		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)]
+		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensorType))) nameSensor.put(sensor.sensorType, sensor)]
 		for(AbstractBoard abstractBoard: board.superTypes){
 			if (!(visited.contains(abstractBoard))){
 				dfsSensors(abstractBoard, visited, nameSensor)

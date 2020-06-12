@@ -19,10 +19,9 @@ Channel:
 	'channel' name=ID
 ;
 
-
 Board:
-	({ConcreteBoard} 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)? | 
-	 {AbstractBoard} 'abstract' 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?) (BEGIN
+	({AbstractBoard} 'abstract' | {ConcreteBoard}) 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?
+	 (BEGIN
 		(channels+=Channel)* 
 		('in' inputs+=[Channel])*
 		(sensors+=Sensor)*
@@ -37,12 +36,12 @@ Sensor:
 
 ExtSensor:
 	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
-	sensortype=ID '('pins+=INT (',' pins+=INT)* ')'
+	sensorType=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
 	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
-	sensortype=ID
+	sensorType=ID
 ;
 
 Variables:
@@ -64,15 +63,7 @@ SensorData returns Data:
 ;
 
 SensorDataOut:
-	ScreenOut | ChannelOut
-;
-
-ScreenOut:
-	'out' 'oled' source=[Variables] (pipeline=Pipeline? | '(' variables+=Variable (',' variables += Variable)* ')')
-;
-
-ChannelOut:
-	'out' channel=[Channel] source=[Variables] (pipeline=Pipeline? | '(' variables+=Variable (',' variables += Variable)* ')')
+	'out' ({ScreenOut} 'oled' | {ChannelOut} channel = [Channel]) source=[Variables] (pipeline=Pipeline? | '(' variables+=Variable (',' variables += Variable)* ')')
 ;
 
 Pipeline:
@@ -84,15 +75,7 @@ TuplePipeline:
 ;
 
 ModifyPipeline:
-	(MapPipeline | WindowPipeline) '->' output=Variable ')'
-;
-
-MapPipeline:
-	{Map} 'map' '('expression=Expression
-;
-
-WindowPipeline:
-	{Window} 'byWindow' '('width=INT ',' executePipeline=ExecutePipeline
+	({Map} 'map' '('expression=Expression | {Window} 'byWindow' '('width=INT ',' executePipeline=ExecutePipeline) '->' output=Variable ')'
 ;
 
 ExecutePipeline:

@@ -52,12 +52,10 @@ import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.SignalSampler
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
-import org.iot.codegenerator.codeGenerator.TuplePipeline
 import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Window
-import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static org.iot.codegenerator.validation.IssueCodesProvider.*
@@ -131,8 +129,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def checkForDuplicateSensors (Sensor sensor){
 		val board = sensor.getContainerOfType(Board)
 		for (Sensor s: board.sensors.filter[it !== sensor]){
-			if (sensor.sensortype.equals(s.sensortype)){
-				error('''duplicate sensor «sensor.sensortype»''', CodeGeneratorPackage.Literals.SENSOR__SENSORTYPE)
+			if (sensor.sensorType.equals(s.sensorType)){
+				error('''duplicate sensor «sensor.sensorType»''', CodeGeneratorPackage.Literals.SENSOR__SENSOR_TYPE)
 			}
 		}
 	}
@@ -142,9 +140,9 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateOnboardSensor(Sensor sensor) {
 		if (sensor instanceof OnbSensor){
 			val board = new ESP32()
-			val parameterCount = board.getParameterCount(sensor.sensortype)
+			val parameterCount = board.getParameterCount(sensor.sensorType)
 			if (parameterCount == -1) {
-				error('''Board does not support sensor: «sensor.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+				error('''Board does not support sensor: «sensor.sensorType»''', CodeGeneratorPackage.eINSTANCE.sensor_SensorType)
 			} 
 		}
 	}
@@ -161,11 +159,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 					warning('''Number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
 				}
 			OnbSensor:
-				if(board.sensors.contains(parent.sensortype)){
-					val legalVariables = board.getSensorVariables(parent.sensortype)
+				if(board.sensors.contains(parent.sensorType)){
+					val legalVariables = board.getSensorVariables(parent.sensorType)
 					for (Variable variable : variables.ids){
 						if (!(legalVariables.contains(variable.name))){
-							error('''Unsupported variable «variable.name». The «parent.sensortype» sensor supports the variables: «String.join(", ", legalVariables)»''',
+							error('''Unsupported variable «variable.name». The «parent.sensorType» sensor supports the variables: «String.join(", ", legalVariables)»''',
 								variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 						}
 					}
@@ -302,10 +300,10 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateWindowNotUsedOnString(Map map){
 		if (map.expression.type == TypeChecker.Type.STRING) {
 			var next = map.next
-			while (next !== null && next instanceof TuplePipeline){
+			while (next !== null && next instanceof Filter){
 				next = next.next
 			}
-			if (next instanceof WindowPipeline){
+			if (next instanceof Window){
 				error('''cannot use byWindow on string type''', next, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
 			}
 		}
@@ -338,16 +336,16 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	def checkByWindowNotUsedOnTuple(Pipeline pipeline) {
-		if (pipeline instanceof WindowPipeline) {
+		if (pipeline instanceof Window) {
 			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
 			return
 		}
 		var pipe = pipeline
-		if (pipeline instanceof TuplePipeline) {
+		if (pipeline instanceof Filter) {
 			while(pipe !== null) {
-				if (!(pipe instanceof TuplePipeline) && !(pipe instanceof WindowPipeline)){
+				if (!(pipe instanceof Filter) && !(pipe instanceof Window)){
 					return
-				} else if (pipe instanceof WindowPipeline) {
+				} else if (pipe instanceof Window) {
 					error('''cannot use byWindow on tuple type''', pipe, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
 					return
 				}

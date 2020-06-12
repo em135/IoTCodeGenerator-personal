@@ -18,7 +18,7 @@ class SensorProviderGenerator {
 		 
         «FOR sensor : board.inheritedSensors»
 
-		class «sensor.sensortype»_wrapper:
+		class «sensor.sensorType»_wrapper:
 		
 			def __init__(self):
 				«sensor.getInitDriver(env)»
@@ -30,7 +30,7 @@ class SensorProviderGenerator {
 	}
 	
 	private def String getInitDriver(Sensor sensor, GeneratorEnvironment env){
-		val sensorType = sensor.sensortype
+		val sensorType = sensor.sensorType
 		switch (sensorType) {
 			case "thermometer": {
 			'''
@@ -64,7 +64,7 @@ class SensorProviderGenerator {
 	}
 	
 	private def String getReadDriver(Sensor sensor, GeneratorEnvironment env){
-			val sensorType = sensor.sensortype
+			val sensorType = sensor.sensorType
 		switch (sensorType) {
 			case "thermometer": {
 				'''return dict(tmp=int(self.driver.read_temp()),hum=int(self.driver.read_humi()))'''

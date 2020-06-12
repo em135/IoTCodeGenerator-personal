@@ -30,9 +30,9 @@ class BoardGenerator {
 		}
 		
 		for (sensor : board.inheritedSensors){
-			val sensorType = sensor.sensortype
+			val sensorType = sensor.sensorType
 			val sensorFileName = '''board/«sensorType»'''
-			switch (sensor.sensortype) {
+			switch (sensor.sensorType) {
 				case "thermometer", case "motion", case "light": {
 					fsa.generateFile('''«sensorFileName».py''', sensorGenerator.compile(sensor))
 				}

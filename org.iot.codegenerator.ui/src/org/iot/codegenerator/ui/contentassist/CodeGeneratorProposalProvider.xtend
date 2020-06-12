@@ -30,7 +30,7 @@ class CodeGeneratorProposalProvider extends AbstractCodeGeneratorProposalProvide
 	override completeVariables_Ids(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
 		var container = model.eContainer
 		if (container !== null && container instanceof OnbSensor){
-			val sensorType = (container as OnbSensor).sensortype
+			val sensorType = (container as OnbSensor).sensorType
 			val esp32 = new ESP32()
 			val currentVariablesIds = (container as OnbSensor).variables.ids
 			val currentVariableNames = newArrayList

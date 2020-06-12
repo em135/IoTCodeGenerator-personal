@@ -35,7 +35,7 @@ class SensorGenerator {
 
 	private def String compileClass(Sensor sensor, GeneratorEnvironment env) {
 		'''
-			class «sensor.sensortype.asClass»:
+			class «sensor.sensorType.asClass»:
 				
 				«sensor.compileConstructor(env)»
 				«sensor.compileTimerLoop(env)»
@@ -52,7 +52,7 @@ class SensorGenerator {
 				self.sensor = sensor
 				self.variables = {}
 				«IF sensor.isFrequency»
-					self.thread = «env.useImport("thread")».Thread(self.__timer, "Thread«sensor.sensortype.asClass»")
+					self.thread = «env.useImport("thread")».Thread(self.__timer, "Thread«sensor.sensorType.asClass»")
 					self.thread.start()
 				«ENDIF»
 				

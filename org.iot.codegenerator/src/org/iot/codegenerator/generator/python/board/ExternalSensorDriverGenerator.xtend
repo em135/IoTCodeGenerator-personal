@@ -8,13 +8,13 @@ class ExternalSensorDriverGenerator {
 	def compile(Sensor sensor) {		
 		'''
 		"""
-		Micropython driver for the external sensor «sensor.sensortype»
+		Micropython driver for the external sensor «sensor.sensorType»
 		This file will not be overwritten by the IoT code generator
-		Use this to implement the required driver to read from the external sensor «sensor.sensortype»
+		Use this to implement the required driver to read from the external sensor «sensor.sensorType»
 		It is required to implement the constructor and the get_values() method
 		"""
 		
-		class «sensor.sensortype.asClass»_driver:
+		class «sensor.sensorType.asClass»_driver:
 		
 			def __int__(self):
 				pass

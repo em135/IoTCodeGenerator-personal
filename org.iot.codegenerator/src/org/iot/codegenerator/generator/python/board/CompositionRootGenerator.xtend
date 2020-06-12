@@ -91,20 +91,20 @@ class CompositionRootGenerator {
 	}
 	
 	private def addSensor(Board board, Sensor sensor){
-		'''«board.name.asInstance».add_sensor("«sensor.sensortype.asModule»", self.«sensor.providerName»())'''
+		'''«board.name.asInstance».add_sensor("«sensor.sensorType.asModule»", self.«sensor.providerName»())'''
 	}
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
 		'''
 			«FOR sensor : board.inheritedSensors» 
 				def «sensor.providerName»(self):
-					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»(self.provide_driver_«sensor.sensortype»())
+					«sensor.sensorType.asInstance» = «env.useImport(sensor.sensorType.asModule)».«sensor.sensorType.asClass»(self.provide_driver_«sensor.sensorType»())
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
-							«sensor.sensortype.asInstance».add_pipeline(«providerPipelineName(data, out)»())
+							«sensor.sensorType.asInstance».add_pipeline(«providerPipelineName(data, out)»())
 						«ENDFOR»
 					«ENDFOR»
-					return «sensor.sensortype.asInstance»
+					return «sensor.sensorType.asInstance»
 				
 			«ENDFOR»
 		'''
@@ -119,12 +119,12 @@ class CompositionRootGenerator {
 	}
 	
 	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment env){
-		determineSensorDriverLib(sensor.sensortype)
-		env.useImport("sensor_provider", sensor.sensortype+"_wrapper")
+		determineSensorDriverLib(sensor.sensorType)
+		env.useImport("sensor_provider", sensor.sensorType+"_wrapper")
 		'''
 		
-		def provide_driver_«sensor.sensortype»(self):
-			return «sensor.sensortype»_wrapper()
+		def provide_driver_«sensor.sensorType»(self):
+			return «sensor.sensorType»_wrapper()
 		'''				
 	}
 	
@@ -178,7 +178,7 @@ class CompositionRootGenerator {
 
 	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {
 		val inner = pipeline.next === null ? sink : pipeline.next.compilePipelineComposition(sink, env)
-		val sensorName = pipeline.getContainerOfType(Sensor).sensortype
+		val sensorName = pipeline.getContainerOfType(Sensor).sensorType
 		val interceptorName = pipeline.interceptorName
 		
 		'''
@@ -251,7 +251,7 @@ class CompositionRootGenerator {
 	}
 
 	private def String providerName(Sensor sensor) {
-		'''provide_sensor_«sensor.sensortype.asModule»'''
+		'''provide_sensor_«sensor.sensorType.asModule»'''
 	}
 
 	private def String providerName(Channel channel) {
@@ -266,7 +266,7 @@ class CompositionRootGenerator {
 			it != out
 		].size + 1
 	
-		'''provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
+		'''provide_pipeline_«sensor.sensorType.asModule»_«data.name.asModule»_«index»'''
 	}
 	
 	private def String providerPipelineName(SensorData data, SensorDataOut out) {
@@ -275,7 +275,7 @@ class CompositionRootGenerator {
 			it != out
 		].size + 1
 	
-		'''"«data.name.asModule»_«index»", self.provide_pipeline_«sensor.sensortype.asModule»_«data.name.asModule»_«index»'''
+		'''"«data.name.asModule»_«index»", self.provide_pipeline_«sensor.sensorType.asModule»_«data.name.asModule»_«index»'''
 	}
 
 }
