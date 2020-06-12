@@ -18,9 +18,13 @@ import org.iot.codegenerator.validation.ESP32
  */
 class CodeGeneratorProposalProvider extends AbstractCodeGeneratorProposalProvider {
 	
+	override completeLanguage_Name(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		acceptor.accept(createCompletionProposal("python", "python", null, context))	
+	}
+	
 	override complete_OnbSensor(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
 		val acceptedValues = newArrayList("light", "thermometer", "motion")
-		accepts(acceptedValues, context, acceptor)
+		acceptValues(acceptedValues, context, acceptor)
 	}
 	
 	override completeVariables_Ids(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
@@ -39,13 +43,13 @@ class CodeGeneratorProposalProvider extends AbstractCodeGeneratorProposalProvide
 				case "thermometer",case "motion", case "light" :  {
 					val acceptedValues = esp32.getSensorVariables(sensorType)
 					acceptedValues.removeAll(currentVariableNames)
-					accepts(acceptedValues, context, acceptor)
+					acceptValues(acceptedValues, context, acceptor)
 				}
 			}
 		}
 	}
 	
-	def accepts(List<String> values, ContentAssistContext context, ICompletionProposalAcceptor acceptor){
+	def acceptValues(List<String> values, ContentAssistContext context, ICompletionProposalAcceptor acceptor){
 		values.forEach[accept(context, acceptor)]
 	}
 	
