@@ -130,6 +130,17 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
+		
+	@Check
+	def checkForDuplicateSensors (Sensor sensor){
+		val board = sensor.getContainerOfType(Board)
+		for (Sensor s: board.sensors.filter[it !== sensor]){
+			if (sensor.sensortype.equals(s.sensortype)){
+				error('''duplicate sensor «sensor.sensortype»''', CodeGeneratorPackage.Literals.SENSOR__SENSORTYPE)
+			}
+		}
+	}
+	
 
 	@Check
 	def validateOnboardSensor(Sensor sensor) {
