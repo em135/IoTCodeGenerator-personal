@@ -77,40 +77,25 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	@Inject extension TypeChecker
-	@Inject extension IQualifiedNameProvider
+	@Inject IQualifiedNameProvider qualifiedNameProvider
 	@Inject IContainer.Manager containerManager
 	@Inject IResourceDescriptions resourceDescriptions
-	
-	
-//	@Check(CheckType.NORMAL)
-//	def checkDeviceConfiguration(DeviceConf configuration) {
-//		val boards = configuration.board
-//		
-//		if (boards.size() < 1) {
-//			error('''There must be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
-//			return
-//		} else if (boards.size() > 1) {
-//			error('''There must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
-//			return
-//		}
-//
-//		val clouds = configuration.cloud
-//
-//		if (clouds.size() < 1) {
-//			warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
-//			return
-//		} else if (clouds.size() > 1) {
-//			error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
-//			return
-//		}
-//
-//		val fogs = configuration.fog
-//
-//		if (fogs.size() > 1) {
-//			error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
-//			return
-//		}
-//	}
+
+	@Check
+	def checkConcreteBoardCloud (ConcreteBoard concreteBoard){
+		val deviceConf = concreteBoard.eContainer?.getContainerOfType(DeviceConf)
+		
+		if (deviceConf !== null){
+			if (deviceConf.cloud.size >1){
+				error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.board_Name)
+			} else if (deviceConf.cloud.size() < 1) {
+				warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.board_Name)
+			}
+			if (deviceConf.fog.size > 1){
+				error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.board_Name)
+			}
+		}
+	}
 	
 
 	
@@ -624,8 +609,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
 	}
-	
-	
 
 	def visibleContainers(EObject eObject) {
 		val resourceDescription = eObject.resourceDescription
@@ -639,15 +622,15 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Check(CheckType.NORMAL)
 	def checkDuplicateBoardsInFiles(DeviceConf conf) {
 		val boardType = CodeGeneratorPackage.eINSTANCE.board
-		val boards = conf.visibleContainers.map[ container | container.getExportedObjectsByType(boardType)].flatten
+		val boards = conf.visibleContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
 		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
 		val externalBoards = boards.toSet
 		externalBoards.removeAll(exportedBoards.toSet)
 		val externalBoardNames= externalBoards.toMap[qualifiedName]
 		
 		for (board : conf.board) {
-			if (externalBoardNames.containsKey(board.fullyQualifiedName)) {
-				error("The type " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
+			if (externalBoardNames.containsKey(qualifiedNameProvider.getFullyQualifiedName(board))) {
+				error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
 			}
 	}
 	
