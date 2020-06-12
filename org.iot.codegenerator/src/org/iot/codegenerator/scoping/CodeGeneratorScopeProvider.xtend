@@ -3,18 +3,13 @@
  */
 package org.iot.codegenerator.scoping
 
-import java.util.ArrayList
-import java.util.Collection
 import java.util.Collections
-import java.util.HashMap
 import java.util.HashSet
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
-import org.iot.codegenerator.codeGenerator.AbstractBoard
 import org.iot.codegenerator.codeGenerator.Board
-import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.Cloud
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Data
@@ -23,10 +18,10 @@ import org.iot.codegenerator.codeGenerator.Fog
 import org.iot.codegenerator.codeGenerator.ModifyPipeline
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Provider
-import org.iot.codegenerator.codeGenerator.Sensor
 
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import static extension org.iot.codegenerator.util.InheritanceUtil.*
 
 /**
  * This class contains custom scoping description.
@@ -71,8 +66,6 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 
 	def private IScope getTransInIdScope(EObject context) {
-		val visited = new HashSet<Board>
-		val nameSensor = new HashMap<String, Sensor>
 		var fog = context.getContainerOfType(Fog)
 		var cloud = context.getContainerOfType(Cloud)
 		var deviceConf = fog?.getContainerOfType(DeviceConf)
@@ -86,7 +79,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		val board = deviceConf?.board?.getObjectByType(CodeGeneratorPackage.eINSTANCE.concreteBoard)
 		
 		if (board !== null){
-			val sensors = dfs(board as Board, visited, nameSensor)
+			val sensors = (board as Board).inheritedSensors
 			sensors.forEach[sensor | sensor.datas.forEach[data | datas.add(data)]]
 			val scope = Scopes.scopeFor(datas)
 
@@ -110,35 +103,11 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 	
 	def private IScope inChannelsScope(Board board){
-		val visited = new HashSet<Board>
-		val nameChannel = new HashMap<String, Channel> 
-		val channels = dfsChannels(board, visited, nameChannel)
+		val channels = board.inheritedChannels
 		if (!channels.empty){
 			return Scopes.scopeFor(channels)			
 		}
 		return IScope.NULLSCOPE
-	}
-		
-	def private ArrayList<Channel> dfsChannels(Board board, HashSet<Board> visited, HashMap<String, Channel> nameChannel){
-		visited.add(board)
-		board.channels.forEach[channel | nameChannel.put(channel.name, channel)]
-		for(AbstractBoard abstractBoard: board.superTypes){
-			if (!(visited.contains(abstractBoard))){
-				dfsChannels(abstractBoard, visited, nameChannel)
-			}
-		}
-		return newArrayList(nameChannel.values)
-	}
-	
-	def private Collection<Sensor> dfs(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){
-		visited.add(board)
-		board.sensors.forEach[sensor |if (!(nameSensor.keySet.contains(sensor.sensortype))) nameSensor.put(sensor.sensortype, sensor)] 
-		for(AbstractBoard abstractBoard: board.superTypes){
-			if (!(visited.contains(abstractBoard))){
-				dfs(abstractBoard, visited, nameSensor)
-			}
-		}
-		return nameSensor.values
 	}
 
 }
