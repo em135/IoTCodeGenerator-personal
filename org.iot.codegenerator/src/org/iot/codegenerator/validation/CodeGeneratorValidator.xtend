@@ -13,10 +13,10 @@ import java.util.Set
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.validation.Check
-import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
@@ -183,22 +183,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	@Check(CheckType.NORMAL)
-	def checkUniqueBoardNames(Board board){
-		val config = board.getContainerOfType(DeviceConf)
-		for (Board b: config.board.filter[it !== board]){
-			if (board.name.equals(b.name)){
-				error('''duplicate «board.name»''', CodeGeneratorPackage.Literals.BOARD__NAME)
-			}
-		}
-		val boardNames = board.superTypes.map[abstractBoard | abstractBoard.name]
-		val uniqueBoardNames = new HashSet<String>
-		val duplicated = boardNames.filter[ab | ab !== null && !uniqueBoardNames.add(ab)].toSet
-		if (!(duplicated.empty)){
-			error('''«board.name» cannot extend from duplicate abstract board «String.join(", ", duplicated)» ''', CodeGeneratorPackage.Literals.BOARD__NAME)
-		}
-	}
-
 	@Check
 	def checkSampleSignal(ChannelOut channelOut){
 		val sampler = channelOut.getContainerOfType(SensorData)?.getContainerOfType(Sensor)?.sampler
@@ -213,19 +197,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	@Check(CheckType.NORMAL)
-	def checkDuplicateBoardsInFiles(DeviceConf conf) {
+	@Check
+	def checkDuplicateBoardsInFiles(Board board) {
+		val conf = board.getContainerOfType(DeviceConf)
 		val boardType = CodeGeneratorPackage.eINSTANCE.board
 		val boards = conf.visibleContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
-		val exportedBoards = conf.resourceDescription.getExportedObjectsByType(CodeGeneratorPackage.eINSTANCE.board)
-		val externalBoards = boards.toSet
-		externalBoards.removeAll(exportedBoards.toSet)
-		val externalBoardNames= externalBoards.toMap[qualifiedName]
-		
-		for (board : conf.board) {
-			if (externalBoardNames.containsKey(qualifiedNameProvider.getFullyQualifiedName(board))) {
-				error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)}
+		val uniqueBoards = new HashSet<QualifiedName>
+		val duplicates = new HashSet<QualifiedName>
+		for(name : boards){
+			if (!uniqueBoards.add(name.qualifiedName)){
+				duplicates.add(name.qualifiedName)
 			}
+		}
+		if (duplicates.contains(qualifiedNameProvider.getFullyQualifiedName(board))) {
+			error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)
+		}
 	}
 	
 	def visibleContainers(EObject eObject) {

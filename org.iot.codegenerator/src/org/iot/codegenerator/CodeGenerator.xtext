@@ -20,12 +20,20 @@ Channel:
 ;
 
 Board:
-	({AbstractBoard} 'abstract' | {ConcreteBoard}) 'board' name=ID ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?
-	 (BEGIN
+	(AbstractBoard | ConcreteBoard) ('extends' superTypes += [AbstractBoard](',' superTypes+=[AbstractBoard])*)?
+	(BEGIN
 		(channels+=Channel)* 
 		('in' inputs+=[Channel])*
 		(sensors+=Sensor)*
-	 END)?
+	END)?
+;
+
+AbstractBoard:
+	'abstract' 'board' name = ID
+;
+
+ConcreteBoard:
+	'board' name=ID 
 ;
 
 Sensor:
@@ -67,10 +75,10 @@ SensorDataOut:
 ;
 
 Pipeline:
-	'.' (TuplePipeline | ModifyPipeline) (next=Pipeline)?
+	'.' (FilterPipeline | ModifyPipeline) (next=Pipeline)?
 ;
 
-TuplePipeline:
+FilterPipeline:
 	{Filter} 'filter' '('expression=Expression')'
 ;
 
