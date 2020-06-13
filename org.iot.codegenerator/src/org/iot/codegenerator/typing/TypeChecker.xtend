@@ -19,6 +19,7 @@ import org.iot.codegenerator.codeGenerator.StringLiteral
 import org.iot.codegenerator.codeGenerator.Window
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.Transformation
 
 class TypeChecker {
 
@@ -182,6 +183,11 @@ class TypeChecker {
 
 		val baseSensor = variable.getContainerOfType(Sensor)
 		if (baseSensor !== null) {
+			return Type.INT
+		}
+		
+		val transformation = variable.getContainerOfType(Transformation)
+		if (transformation !== null){
 			return Type.INT
 		}
 
