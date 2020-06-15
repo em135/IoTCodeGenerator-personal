@@ -10,7 +10,6 @@ import java.util.HashMap
 import java.util.HashSet
 import java.util.List
 import java.util.Set
-import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.naming.QualifiedName
@@ -116,7 +115,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check
-	def checkForDuplicateChannels (Channel channel){
+	def checkUniqueChannels (Channel channel){
 		val board = channel.getContainerOfType(Board)
 		for (Channel c: board.channels.filter[it !== channel]){
 			if (channel.name.equals(c.name)){
@@ -126,7 +125,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check
-	def checkForDuplicateSensors (Sensor sensor){
+	def checkUniqueSensors (Sensor sensor){
 		val board = sensor.getContainerOfType(Board)
 		for (Sensor s: board.sensors.filter[it !== sensor]){
 			if (sensor.sensorType.equals(s.sensorType)){
@@ -198,10 +197,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check
-	def checkDuplicateBoardsInFiles(Board board) {
-		val conf = board.getContainerOfType(DeviceConf)
+	def checkUniqueBoardNames(Board board) {
 		val boardType = CodeGeneratorPackage.eINSTANCE.board
-		val boards = conf.visibleContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
+		val resourceDescription = resourceDescriptions.getResourceDescription(board.eResource.URI)
+		val boardContainers = containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)
+		val boards = boardContainers.map[container | container.getExportedObjectsByType(boardType)].flatten
 		val uniqueBoards = new HashSet<QualifiedName>
 		val duplicates = new HashSet<QualifiedName>
 		for(name : boards){
@@ -212,15 +212,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (duplicates.contains(qualifiedNameProvider.getFullyQualifiedName(board))) {
 			error("The board " + board.name + " is already defined", board, CodeGeneratorPackage.Literals.BOARD__NAME)
 		}
-	}
-	
-	def visibleContainers(EObject eObject) {
-		val resourceDescription = eObject.resourceDescription
-		containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)
-	}
-	
-	def resourceDescription(EObject eObject) {
-		resourceDescriptions.getResourceDescription(eObject.eResource.URI)
 	}
 	
 	@Check

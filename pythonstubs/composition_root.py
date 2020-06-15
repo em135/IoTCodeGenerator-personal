@@ -1,10 +1,3 @@
-# TODO: Only import things that are actually used, keep track
-# of an import collection during generation, for instance by
-# having an environment object that is being passed around,
-# and generating the code templates from the inside-out
-# TODO: Choose between importing into namespace or referencing,
-# e.g. InterceptorMap1 vs thermistor.InterceptorMap1
-# TODO: Make a separate package for python code generators
 from mpu6050 import MPU6050
 from pipeline import Pipeline
 from communication import Serial, Wifi
@@ -71,8 +64,6 @@ class CompositionRoot:
         ))))
     
     # And for every channel (but only if it is referenced somewhere)
-    # TODO: Instantiate channels that are registered in the environment after
-    # generating the rest inside-out
     def provide_channel_inserial(self):
         if not self._inserial:
             self._inserial = self.make_channel("inserial")

@@ -37,7 +37,7 @@ ConcreteBoard:
 ;
 
 Sensor:
-	('override')? 'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
+	'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
 		sampler=Sampler datas+=SensorData+
 	END
 ;

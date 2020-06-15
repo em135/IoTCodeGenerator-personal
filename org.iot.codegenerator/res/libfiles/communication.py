@@ -14,7 +14,6 @@ class Communication:
 class Serial(Communication):
 
     def __init__(self, baud: int, databits: int, paritybits: int, stopbit: int):
-        # TODO: I haven't the slightest idea how to configure UART on
         # MicroPython - and I'm not the only one
         pass
 
@@ -26,8 +25,6 @@ class Serial(Communication):
         return data.encode("utf-8")
 
 # Wireless communication
-# TODO: Lots of work on threading, ensuring stable communication,
-# handling connection loss, etc.
 class Wifi(Communication):
 
     def __init__(self, host: str, ssid: str, password: str):

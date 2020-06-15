@@ -8,8 +8,6 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.SensorData
-import org.iot.codegenerator.codeGenerator.ScreenOut
 
 class InheritanceUtil {
 	
@@ -21,9 +19,15 @@ class InheritanceUtil {
 	
 	static def Collection<Sensor> dfsSensors(Board board, HashSet<Board> visited, HashMap<String, Sensor> nameSensor){
 		visited.add(board)
-		board.sensors.forEach[sensor | if (!(nameSensor.keySet.contains(sensor.sensorType))) nameSensor.put(sensor.sensorType, sensor)]
-		for(AbstractBoard abstractBoard: board.superTypes){
-			if (!(visited.contains(abstractBoard))){
+		
+		for (sensor: board.sensors){
+			if (!nameSensor.keySet.contains(sensor.sensorType)){
+				nameSensor.put(sensor.sensorType, sensor)
+			}
+		}
+				
+		for(abstractBoard: board.superTypes){
+			if (!visited.contains(abstractBoard)){
 				dfsSensors(abstractBoard, visited, nameSensor)
 			}
 		}

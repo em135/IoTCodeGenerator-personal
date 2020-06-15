@@ -40,7 +40,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 			case codeGen.sensorDataOut_Source:
 				context.variablesScope
 			case codeGen.transformation_Provider:
-				context.transInIdScope
+				context.transformationProvidersScope
 			case codeGen.channelOut_Channel,
 			case codeGen.board_Inputs:
 				context.channelsScope
@@ -48,7 +48,7 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 				super.getScope(context, reference)
 		}
 	}
-		
+	
 	def private IScope getVariableScope(EObject context) {
 		val pipelineContainer = context.getContainerOfType(Pipeline)?.eContainer()?.getContainerOfType(ModifyPipeline)
 		if (pipelineContainer !== null) {
@@ -65,22 +65,25 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		Scopes.scopeFor(Collections.singleton(context.getContainerOfType(Provider).variables))
 	}
 
-	def private IScope getTransInIdScope(EObject context) {
+	def private IScope getTransformationProvidersScope(EObject context) {
 		var fog = context.getContainerOfType(Fog)
 		var cloud = context.getContainerOfType(Cloud)
 		var deviceConf = fog?.getContainerOfType(DeviceConf)
 		val datas = new HashSet<Data>
 		if (deviceConf === null){
 			deviceConf = cloud?.getContainerOfType(DeviceConf)
-			if (fog !== null){
-				fog.transformations.forEach[transformation | datas.addAll(transformation.datas)]
+			if (fog === null){
+				fog = deviceConf.fog.last
 			}
+		}
+		if (fog !== null && cloud !== null){
+			fog.transformations.forEach[transformation | datas.addAll(transformation.datas)]
 		}
 		val board = deviceConf?.board?.getObjectByType(CodeGeneratorPackage.eINSTANCE.concreteBoard)
 		
 		if (board !== null){
 			val sensors = (board as Board).inheritedSensors
-			sensors.forEach[sensor | sensor.datas.forEach[data | datas.add(data)]]
+			sensors.forEach[sensor | datas.addAll(sensor.datas)]
 			val scope = Scopes.scopeFor(datas)
 
 			if(scope !== null){
@@ -90,19 +93,19 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		
 		return IScope.NULLSCOPE
 	}
-
-	def private IScope channelsScope(EObject context){
+	
+	def private IScope getChannelsScope(EObject context){
 		if (context instanceof Board){
-			return context.inputsScope
+			return context.channelsScope
 		}
 		val board = context.eContainer.getContainerOfType(Board)
 		if (board !== null){
-			return board.inputsScope
+			return board.channelsScope
 		}
 		return IScope.NULLSCOPE
 	}
 	
-	def private IScope inputsScope(Board board){
+	def private IScope channelsScope(Board board){
 		val channels = board.inheritedChannels
 		if (!channels.empty){
 			return Scopes.scopeFor(channels)			
