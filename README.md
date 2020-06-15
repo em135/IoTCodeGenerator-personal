@@ -1,11 +1,11 @@
 # IoTCodeGenerator-personal
 Individual Model-driven Software Development Project: IoT Code Generation with Abstract Boards.
-The intitial commit of this project is based of the group project: https://github.com/Xitric/IoTCodeGenerator/
+The intitial commit of this project is based on the group project: https://github.com/Xitric/IoTCodeGenerator/
 
-This project has developed a domain specific language (DSL) for generation code to ESP32 IoT devices.
+This project has developed a domain specific language (DSL) for generating code to ESP32 IoT devices.
 The generated code samples and processes data from various sensors on the IoT device.
 
-A concrete board can be defined using the DSL. This board which can inherit abstract boards. For instance the .iot file for a concrete esp32 board:
+A concrete board can be defined using the DSL. This board can inherit abstract boards. For instance, the .iot file for a concrete esp32 board:
 ```
 language python
 
