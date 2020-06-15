@@ -3,16 +3,15 @@
  */
 package org.iot.codegenerator.ui.quickfix
 
-import org.eclipse.xtext.nodemodel.INode
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
 import org.eclipse.xtext.ui.editor.quickfix.Fix
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.validation.Issue
 import org.iot.codegenerator.codeGenerator.DeviceConf
 
+import static org.iot.codegenerator.validation.IssueCodesProvider.*
+
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import static extension org.iot.codegenerator.validation.IssueCodesProvider.*
 
 /**
  * Custom quickfixes.
